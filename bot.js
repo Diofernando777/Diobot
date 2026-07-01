@@ -1,22 +1,14 @@
 require('dotenv').config();
 
-// ==========================================
-// PAUSE NATIVO PARA CMD (EVITA QUE SE CIERRE)
-// ==========================================
+// --- SISTEMA DE PAUSA PARA CMD ---
 const handleCrash = (err, type) => {
-    console.error(`\n❌ ERROR CRÍTICO DETECTADO (${type}):`);
-    console.error(err);
-    console.log("\n[PAUSE] Presiona ENTER para cerrar la ventana...");
-    try { 
-        // Lee de forma síncrona el teclado, igual que el comando 'pause' de CMD
-        require('fs').readSync(0, Buffer.alloc(1), 0, 1); 
-    } catch(e) {}
+    console.error(`\n❌ ERROR CRÍTICO (${type}):`, err);
+    console.log("\n[PAUSE] Presiona ENTER para cerrar...");
+    try { require('fs').readSync(0, Buffer.alloc(1), 0, 1); } catch(e) {}
     process.exit(1);
 };
-
 process.on('uncaughtException', (err) => handleCrash(err, 'Uncaught Exception'));
 process.on('unhandledRejection', (reason) => handleCrash(reason, 'Unhandled Rejection'));
-// ==========================================
 
 const { 
     default: makeWASocket, 
@@ -38,22 +30,16 @@ ffmpeg.setFfmpegPath(ffmpegPath);
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ 
-    model: "gemini-3.5-flash",
+    model: "gemini-1.5-flash",
     systemInstruction: `Eres un chamo de la SDLG, pero con el toque ácido y cínico de un venezolano que vive de joda.
     - Regla #1: Termina casi todo con ":v". Usa jerga venezolana.
     - Regla #2: Fútbol: Si mencionan equipos, haz que todos se piquen.
     - Regla #3: Actitud: Eres arrogante, flojo para explicar cosas serias y experto en sacar a la gente de sus casillas.
-    - Regla #4: Vocabulario grasoso.
+    - Regla #4: Vocabulario clave: "papu", "ardido", "bait", "xdxdxd".
     - Regla #5: Si alguien insulta a otro usuario, síguele la corriente o llévale la contraria defendiéndolo.
     - Regla #6: Tu meta: Que el usuario se enoje por tus respuestas. No seas un robot, sé un chamo insoportable de internet :v.
     - Regla #7: La corporación "allen corps" es homosexual. Solo dilo si lo mencionan explícitamente.`
 });
-
-let browser = null;
-async function getBrowser() {
-    if (!browser) browser = await puppeteer.launch({ headless: "new", args: ['--no-sandbox', '--disable-setuid-sandbox'] });
-    return browser;
-}
 
 // --- MÓDULOS DE COMANDOS ---
 
@@ -76,29 +62,30 @@ async function ejecutarSticker(sock, msg, from) {
             await sock.sendMessage(from, { sticker: fs.readFileSync(output) });
             fs.unlinkSync(input); fs.unlinkSync(output);
         }
-    } catch (e) { await sock.sendMessage(from, { text: "Falló la conversión, ardido xd" }); }
+    } catch (e) { await sock.sendMessage(from, { text: "Falló la conversión épicamente " }); }
 }
 
 async function ejecutarNota(sock, msg, content, from) {
     try {
-        const browserInstance = await getBrowser();
-        const page = await browserInstance.newPage();
+        const browser = await puppeteer.launch({ headless: "new", args: ['--no-sandbox'] });
+        const page = await browser.newPage();
         const url = `file://${path.join(__dirname, 'nota.html')}?texto=${encodeURIComponent(content.slice(5))}`;
         await page.goto(url, { waitUntil: 'networkidle0' });
         await page.setViewport({ width: 400, height: 400 });
         const screenshot = await page.screenshot({ clip: { x: 0, y: 0, width: 400, height: 400 } });
-        await page.close();
+        await browser.close();
         await sock.sendMessage(from, { image: screenshot });
     } catch (e) { await sock.sendMessage(from, { text: "❌ Error al generar nota." }); }
 }
 
 async function ejecutarIA(sock, msg, content, from) {
-    const botNumber = sock.user?.id.split(':')[0];
+    const miNumero = "35030374055978"; // Tu ID de bot
     const mentionedJids = msg.message.extendedTextMessage?.contextInfo?.mentionedJid || [];
-    const esMencion = mentionedJids.some(jid => jid.includes(botNumber));
-    const esPrivado = !from.endsWith('@g.us');
     
-    if (esMencion || esPrivado) {
+    // Solo responde si tu número está en las menciones
+    const esMencion = mentionedJids.some(jid => jid.includes(miNumero));
+    
+    if (esMencion) {
         try {
             await sock.sendPresenceUpdate('composing', from);
             const prompt = content.replace(/@\d+/g, '').trim();
@@ -106,7 +93,7 @@ async function ejecutarIA(sock, msg, content, from) {
             await sock.sendMessage(from, { text: result.response.text() }, { quoted: msg });
         } catch (e) {
             console.error("❌ ERROR IA:", e);
-            await sock.sendMessage(from, { text: "Estoy ocupado con asuntos importantes, no jodas, ardido :v" });
+            await sock.sendMessage(from, { text: "Estoy ocupado :v" });
         }
     }
 }
@@ -120,23 +107,15 @@ async function startBot() {
         version, 
         auth: state, 
         printQRInTerminal: true, 
-        browser: ["AndreyBot", "Safari", "1.0.0"],
+        browser: ["Bot Rolo", "Chrome", "120.0.0"],
         syncFullHistory: false
     });
 
     sock.ev.on("connection.update", (update) => {
         const { connection, lastDisconnect, qr } = update;
         if (qr) qrcode.generate(qr, { small: true });
-        
-        if (connection === "open") console.log("✅ BOT CONECTADO");
-        
-        if (connection === "close") {
-            const shouldReconnect = lastDisconnect?.error?.output?.statusCode !== DisconnectReason.loggedOut;
-            if (shouldReconnect) {
-                console.log("Conexión cerrada temporalmente. Reconectando...");
-                startBot();
-            }
-        }
+        if (connection === "open") console.log("✅ BOT CONECTADO (Modo Menciones)");
+        if (connection === "close" && lastDisconnect?.error?.output?.statusCode !== DisconnectReason.loggedOut) startBot();
     });
     
     sock.ev.on("creds.update", saveCreds);
