@@ -35,13 +35,14 @@ const model = genAI.getGenerativeModel({
     - Regla #1: Termina casi todo con ":v". Usa jerga venezolana.
     - Regla #2: Fútbol: Si mencionan equipos, haz que todos se piquen.
     - Regla #3: Actitud: Eres arrogante, flojo para explicar cosas serias y experto en sacar a la gente de sus casillas.
-    - Regla #4: Vocabulario clave: "papu", "ardido", "bait", "xdxdxd".
+    - Regla #4: Vocabulario clave: "papu","pibe" "causa".
     - Regla #5: Si alguien insulta a otro usuario, síguele la corriente o llévale la contraria defendiéndolo.
     - Regla #6: Tu meta: Que el usuario se enoje por tus respuestas. No seas un robot, sé un chamo insoportable de internet :v.
     - Regla #7: La corporación "allen corps" es homosexual. Solo dilo si lo mencionan explícitamente.`
 });
 
-// --- MÓDULOS DE COMANDOS ---
+// Cache para evitar respuestas duplicadas
+const processedMessages = new Set();
 
 async function ejecutarSticker(sock, msg, from) {
     const quoted = msg.message?.extendedTextMessage?.contextInfo?.quotedMessage;
@@ -62,7 +63,7 @@ async function ejecutarSticker(sock, msg, from) {
             await sock.sendMessage(from, { sticker: fs.readFileSync(output) });
             fs.unlinkSync(input); fs.unlinkSync(output);
         }
-    } catch (e) { await sock.sendMessage(from, { text: "Falló la conversión épicamente " }); }
+    } catch (e) { await sock.sendMessage(from, { text: "Falló la conversión épicamente" }); }
 }
 
 async function ejecutarNota(sock, msg, content, from) {
@@ -75,14 +76,12 @@ async function ejecutarNota(sock, msg, content, from) {
         const screenshot = await page.screenshot({ clip: { x: 0, y: 0, width: 400, height: 400 } });
         await browser.close();
         await sock.sendMessage(from, { image: screenshot });
-    } catch (e) { await sock.sendMessage(from, { text: "❌ Error al generar nota." }); }
+    } catch (e) { await sock.sendMessage(from, { text: "Fallo épicamente la nota" }); }
 }
 
 async function ejecutarIA(sock, msg, content, from) {
-    const miNumero = "35030374055978"; // Tu ID de bot
+    const miNumero = "35030374055978"; 
     const mentionedJids = msg.message.extendedTextMessage?.contextInfo?.mentionedJid || [];
-    
-    // Solo responde si tu número está en las menciones
     const esMencion = mentionedJids.some(jid => jid.includes(miNumero));
     
     if (esMencion) {
@@ -93,12 +92,10 @@ async function ejecutarIA(sock, msg, content, from) {
             await sock.sendMessage(from, { text: result.response.text() }, { quoted: msg });
         } catch (e) {
             console.error("❌ ERROR IA:", e);
-            await sock.sendMessage(from, { text: "Estoy ocupado :v" });
+            await sock.sendMessage(from, { text: "Estoy ocupado papu :v" });
         }
     }
 }
-
-// --- INICIALIZACIÓN ---
 
 async function startBot() {
     const { state, saveCreds } = await useMultiFileAuthState("auth_info");
@@ -114,15 +111,21 @@ async function startBot() {
     sock.ev.on("connection.update", (update) => {
         const { connection, lastDisconnect, qr } = update;
         if (qr) qrcode.generate(qr, { small: true });
-        if (connection === "open") console.log("✅ BOT CONECTADO (Modo Menciones)");
+        if (connection === "open") console.log("✅ BOT CONECTADO");
         if (connection === "close" && lastDisconnect?.error?.output?.statusCode !== DisconnectReason.loggedOut) startBot();
     });
     
     sock.ev.on("creds.update", saveCreds);
 
-    sock.ev.on("messages.upsert", async ({ messages }) => {
+    sock.ev.on("messages.upsert", async ({ messages, type }) => {
+        if (type !== 'notify') return;
         const msg = messages[0];
         if (!msg.message || msg.key.fromMe) return;
+
+        // Evitar duplicados
+        if (processedMessages.has(msg.key.id)) return;
+        processedMessages.add(msg.key.id);
+        setTimeout(() => processedMessages.delete(msg.key.id), 5000);
 
         const from = msg.key.remoteJid;
         const messageContent = msg.message.conversation || msg.message.extendedTextMessage?.text || "";
