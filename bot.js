@@ -30,7 +30,7 @@ ffmpeg.setFfmpegPath(ffmpegPath);
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ 
-    model: "gemini-1.5-flash",
+    model: "gemini-3.5-flash",
     systemInstruction: `Eres un chamo de la SDLG, pero con el toque ácido y cínico de un venezolano que vive de joda.
     - Regla #1: Termina casi todo con ":v". Usa jerga venezolana.
     - Regla #2: Fútbol: Si mencionan equipos, haz que todos se piquen.
