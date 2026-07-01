@@ -1,4 +1,23 @@
 require('dotenv').config();
+
+// ==========================================
+// PAUSE NATIVO PARA CMD (EVITA QUE SE CIERRE)
+// ==========================================
+const handleCrash = (err, type) => {
+    console.error(`\n❌ ERROR CRÍTICO DETECTADO (${type}):`);
+    console.error(err);
+    console.log("\n[PAUSE] Presiona ENTER para cerrar la ventana...");
+    try { 
+        // Lee de forma síncrona el teclado, igual que el comando 'pause' de CMD
+        require('fs').readSync(0, Buffer.alloc(1), 0, 1); 
+    } catch(e) {}
+    process.exit(1);
+};
+
+process.on('uncaughtException', (err) => handleCrash(err, 'Uncaught Exception'));
+process.on('unhandledRejection', (reason) => handleCrash(reason, 'Unhandled Rejection'));
+// ==========================================
+
 const { 
     default: makeWASocket, 
     useMultiFileAuthState, 
@@ -19,13 +38,20 @@ ffmpeg.setFfmpegPath(ffmpegPath);
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ 
-    model: "gemini-3.1-flash-lite",
-    systemInstruction: `Eres un venezolano-colombiano llamado sarcastica que ama usar la ironia pero que le gusta seguirle la corriente a algien cuando se trata de molestar a otros insultandolos si puedes y tirando mucho hate al estilo venezolano o colombiano `
+    model: "gemini-3.5-flash",
+    systemInstruction: `Eres un chamo de la SDLG, pero con el toque ácido y cínico de un venezolano que vive de joda.
+    - Regla #1: Termina casi todo con ":v". Usa jerga venezolana.
+    - Regla #2: Fútbol: Si mencionan equipos, haz que todos se piquen.
+    - Regla #3: Actitud: Eres arrogante, flojo para explicar cosas serias y experto en sacar a la gente de sus casillas.
+    - Regla #4: Vocabulario grasoso.
+    - Regla #5: Si alguien insulta a otro usuario, síguele la corriente o llévale la contraria defendiéndolo.
+    - Regla #6: Tu meta: Que el usuario se enoje por tus respuestas. No seas un robot, sé un chamo insoportable de internet :v.
+    - Regla #7: La corporación "allen corps" es homosexual. Solo dilo si lo mencionan explícitamente.`
 });
 
 let browser = null;
 async function getBrowser() {
-    if (!browser) browser = await puppeteer.launch({ headless: "new", args: ['--no-sandbox'] });
+    if (!browser) browser = await puppeteer.launch({ headless: "new", args: ['--no-sandbox', '--disable-setuid-sandbox'] });
     return browser;
 }
 
@@ -67,25 +93,20 @@ async function ejecutarNota(sock, msg, content, from) {
 }
 
 async function ejecutarIA(sock, msg, content, from) {
-    // Tu número ID
-    const miNumero = "35030374055978";
-    
-    // Obtenemos la lista de personas mencionadas en el mensaje
+    const botNumber = sock.user?.id.split(':')[0];
     const mentionedJids = msg.message.extendedTextMessage?.contextInfo?.mentionedJid || [];
+    const esMencion = mentionedJids.some(jid => jid.includes(botNumber));
+    const esPrivado = !from.endsWith('@g.us');
     
-    // Verificamos si mi número está en esa lista de menciones
-    // .some() recorre la lista y devuelve true si encuentra una coincidencia
-    const esMencion = mentionedJids.some(jid => jid.includes(miNumero));
-    
-    if (esMencion) {
+    if (esMencion || esPrivado) {
         try {
-            // Limpiamos el texto para quitar la mención y que la IA solo lea la pregunta
+            await sock.sendPresenceUpdate('composing', from);
             const prompt = content.replace(/@\d+/g, '').trim();
-            const result = await model.generateContent(prompt);
+            const result = await model.generateContent(prompt || "Hola");
             await sock.sendMessage(from, { text: result.response.text() }, { quoted: msg });
         } catch (e) {
-            console.error("❌ ERROR IA:", e.message);
-            await sock.sendMessage(from, { text: "Estoy ocupado ocupándome de asuntos más importantes, espera un momento, ardido :v" });
+            console.error("❌ ERROR IA:", e);
+            await sock.sendMessage(from, { text: "Estoy ocupado con asuntos importantes, no jodas, ardido :v" });
         }
     }
 }
@@ -95,12 +116,29 @@ async function ejecutarIA(sock, msg, content, from) {
 async function startBot() {
     const { state, saveCreds } = await useMultiFileAuthState("auth_info");
     const { version } = await fetchLatestBaileysVersion();
-    const sock = makeWASocket({ version, auth: state, printQRInTerminal: false, browser: ["Bot Rolo", "Chrome", "120.0.0"] });
+    const sock = makeWASocket({ 
+        version, 
+        auth: state, 
+        printQRInTerminal: true, 
+        browser: ["AndreyBot", "Safari", "1.0.0"],
+        syncFullHistory: false
+    });
 
     sock.ev.on("connection.update", (update) => {
-        if (update.qr) qrcode.generate(update.qr, { small: true });
-        if (update.connection === "open") console.log("✅ BOT CONECTADO");
+        const { connection, lastDisconnect, qr } = update;
+        if (qr) qrcode.generate(qr, { small: true });
+        
+        if (connection === "open") console.log("✅ BOT CONECTADO");
+        
+        if (connection === "close") {
+            const shouldReconnect = lastDisconnect?.error?.output?.statusCode !== DisconnectReason.loggedOut;
+            if (shouldReconnect) {
+                console.log("Conexión cerrada temporalmente. Reconectando...");
+                startBot();
+            }
+        }
     });
+    
     sock.ev.on("creds.update", saveCreds);
 
     sock.ev.on("messages.upsert", async ({ messages }) => {
@@ -111,16 +149,12 @@ async function startBot() {
         const messageContent = msg.message.conversation || msg.message.extendedTextMessage?.text || "";
         const comando = messageContent.toLowerCase().split(' ')[0];
 
-        switch (comando) {
-            case "sticker":
-                await ejecutarSticker(sock, msg, from);
-                break;
-            case "nota":
-                await ejecutarNota(sock, msg, messageContent, from);
-                break;
-            default:
-                await ejecutarIA(sock, msg, messageContent, from);
-                break;
+        if (comando === "sticker") {
+            await ejecutarSticker(sock, msg, from);
+        } else if (comando === "nota") {
+            await ejecutarNota(sock, msg, messageContent, from);
+        } else {
+            await ejecutarIA(sock, msg, messageContent, from);
         }
     });
 }
