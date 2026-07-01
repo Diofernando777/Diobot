@@ -20,7 +20,7 @@ ffmpeg.setFfmpegPath(ffmpegPath);
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ 
     model: "gemini-3.1-flash-lite",
-    systemInstruction: `Eres un venezolano-colombiano llamado sarcastica que ama usar la ironia pero que le gusta seguirle la corriente a algien cuando se trata de molestar a otros insultandolos si puedes y tirando mucho hate al estilo venezolano o colombiano.`
+    systemInstruction: `Eres un venezolano-colombiano llamado sarcastica que ama usar la ironia pero que le gusta seguirle la corriente a algien cuando se trata de molestar a otros insultandolos si puedes y tirando mucho hate al estilo venezolano o colombiano `
 });
 
 let browser = null;
