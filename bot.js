@@ -30,7 +30,7 @@ ffmpeg.setFfmpegPath(ffmpegPath);
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ 
-    model: "gemini-3.1-flash-lite",
+    model: "gemini-3.5-flash",
     systemInstruction: `Eres un chamo de la SDLG, pero con el toque ácido y cínico de un venezolano que vive de joda.
     - Regla #1: Termina casi todo con ":v". Usa jerga venezolana.
     - Regla #2: Fútbol: Si mencionan equipos, haz que todos se piquen.
@@ -47,23 +47,51 @@ const processedMessages = new Set();
 async function ejecutarSticker(sock, msg, from) {
     const quoted = msg.message?.extendedTextMessage?.contextInfo?.quotedMessage;
     if (!quoted) return await sock.sendMessage(from, { text: "Responde a una imagen o video, papu :v" });
+
     try {
         const buffer = await downloadMediaMessage({ message: quoted, key: msg.key }, "buffer", {});
+        
         if (quoted.imageMessage) {
-            const sticker = await sharp(buffer).resize(512, 512, { fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 0 } }).webp().toBuffer();
+            const sticker = await sharp(buffer)
+                .resize(512, 512, { fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 0 } })
+                .webp({ quality: 80 })
+                .toBuffer();
             await sock.sendMessage(from, { sticker });
+
         } else if (quoted.videoMessage) {
             const id = msg.key.id;
             const input = path.join(__dirname, `input_${id}.mp4`);
             const output = path.join(__dirname, `output_${id}.webp`);
+            
             fs.writeFileSync(input, buffer);
+
             await new Promise((res, rej) => {
-                ffmpeg(input).outputOptions(["-vcodec libwebp", "-vf scale=512:512:force_original_aspect_ratio=decrease,pad=512:512:(ow-iw)/2:(oh-ih)/2:color=white@0.0,format=rgba", "-an"]).toFormat("webp").save(output).on("end", res).on("error", rej);
+                ffmpeg(input)
+                    .inputOptions(['-t 5']) // <-- LIMITA A 5 SEGUNDOS
+                    .outputOptions([
+                        "-vcodec libwebp",
+                        "-vf scale=512:512:force_original_aspect_ratio=decrease,pad=512:512:(ow-iw)/2:(oh-ih)/2:color=white@0.0,format=rgba,fps=15", // <-- LIMITA A 15 FPS
+                        "-an", // <-- ELIMINA AUDIO
+                        "-preset picture",
+                        "-compression_level 6",
+                        "-q:v 50" // <-- CALIDAD AJUSTABLE (BAJA A 30 SI AUN ES GRANDE)
+                    ])
+                    .toFormat("webp")
+                    .save(output)
+                    .on("end", res)
+                    .on("error", rej);
             });
+
             await sock.sendMessage(from, { sticker: fs.readFileSync(output) });
-            fs.unlinkSync(input); fs.unlinkSync(output);
+            
+            // Limpieza
+            fs.unlinkSync(input);
+            fs.unlinkSync(output);
         }
-    } catch (e) { await sock.sendMessage(from, { text: "Falló la conversión épicamente" }); }
+    } catch (e) {
+        console.error(e);
+        await sock.sendMessage(from, { text: "Falló la conversión épicamente" });
+    }
 }
 
 async function ejecutarNota(sock, msg, content, from) {
@@ -92,7 +120,7 @@ async function ejecutarIA(sock, msg, content, from) {
             await sock.sendMessage(from, { text: result.response.text() }, { quoted: msg });
         } catch (e) {
             console.error("❌ ERROR IA:", e);
-            await sock.sendMessage(from, { text: "Estoy ocupado papu :v" });
+            await sock.sendMessage(from, { text: "Estoy ocupado paou :v" });
         }
     }
 }
