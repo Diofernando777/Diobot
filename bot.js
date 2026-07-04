@@ -26,7 +26,7 @@ const puppeteer = require("puppeteer");
 const fs = require("fs");
 const path = require("path");
 const Jimp = require('jimp');
-const fs = require('fs');
+
 
 ffmpeg.setFfmpegPath(ffmpegPath);
 
