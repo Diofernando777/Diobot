@@ -25,7 +25,7 @@ const ffmpegPath = require("ffmpeg-static");
 const puppeteer = require("puppeteer");
 const fs = require("fs");
 const path = require("path");
-const Jimp = require('jimp');
+const Jimp = require('jimp').Jimp;
 
 
 ffmpeg.setFfmpegPath(ffmpegPath);
@@ -140,7 +140,7 @@ async function ejecutarShip(sock, msg, from) {
     const compatibility = Math.floor(Math.random() * 101);
 
     // Formateamos el texto usando @, esto crea el "tag" visual
-    const resultado = `*Resultado de Pareja* 🚢\n\n` +
+    const resultado = `*Resultado de Pareja* ❤️\n\n` +
                       `👤 @${usuario1.split('@')[0]} + @${usuario2.split('@')[0]}\n` +
                       `❤️ Compatibilidad: ${compatibility}%`;
 
