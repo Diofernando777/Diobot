@@ -200,7 +200,7 @@ async function ejecutarBana(sock, msg, content, from) {
         // Si no hay contenido, obliga a la IA a opinar de algo random por sí misma
         const prompt = content.replace(/!bana/gi, '').trim() || "Opina sobre algo random.";
 
-        const result = await modelBananirou.generateContent(prompt);
+        const result = await modelBana.generateContent(prompt);
         await sock.sendMessage(from, { text: result.response.text() }, { quoted: msg });
     } catch (e) {
         console.error("❌ ERROR BANA:", e);
