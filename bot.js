@@ -208,6 +208,38 @@ async function ejecutarBana(sock, msg, content, from) {
     }
 }
 
+async function cum(buffer, tipo, rutaSalida) {
+    const rutaPng = path.join(__dirname, 'overlay.png'); // PNG en la raíz
+
+    if (tipo === 'image') {
+        const imagenBase = sharp(buffer);
+        const metadata = await imagenBase.metadata();
+
+        const pngBuffer = await sharp(rutaPng)
+            .resize(metadata.width, metadata.height, { fit: 'fill' })
+            .toBuffer();
+
+        return await imagenBase.composite([{ input: pngBuffer }]).toBuffer();
+
+    } else if (tipo === 'video') {
+        const tempVideo = path.join(__dirname, 'temp_input.mp4');
+        fs.writeFileSync(tempVideo, buffer);
+
+        return new Promise((resolve, reject) => {
+            ffmpeg(tempVideo)
+                .input(rutaPng)
+                .complexFilter(['overlay=0:0'])
+                .save(rutaSalida)
+                .on('end', () => {
+                    const videoFinal = fs.readFileSync(rutaSalida);
+                    // Opcional: fs.unlinkSync(tempVideo);
+                    resolve(videoFinal);
+                })
+                .on('error', (err) => reject(err));
+        });
+    }
+}
+
 async function startBot() {
     const { state, saveCreds } = await useMultiFileAuthState("auth_info");
     const { version } = await fetchLatestBaileysVersion();
@@ -250,6 +282,8 @@ async function startBot() {
             await ejecutarSticker(sock, msg, from);
         } else if (comando === "nota") {
             await ejecutarNota(sock, msg, messageContent, from);
+        }else if (comando === "cum") {
+            await cum(sock, msg, messageContent, from);
         } else if (comando === "ship") { 
             await ejecutarShip(sock, msg, from);
         } else if (comando === "bana") {
