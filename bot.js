@@ -25,8 +25,7 @@ const ffmpegPath = require("ffmpeg-static");
 const puppeteer = require("puppeteer");
 const fs = require("fs");
 const path = require("path");
-const { Jimp } = require('jimp');
-const { loadFont, FontSANS_32_BLACK } = require('@jimp/font');
+
 
 
 
@@ -154,65 +153,7 @@ async function ejecutarShip(sock, msg, from) {
 }
 
 
-async function ejecutarCaption(sock, msg, from, captionText) {
-    console.log("--- Iniciando proceso de imagen ---");
-    
-    const quotedMessage = msg.message?.extendedTextMessage?.contextInfo?.quotedMessage;
-    const targetMsg = quotedMessage 
-        ? { message: quotedMessage, key: { ...msg.key, participant: msg.message.extendedTextMessage.contextInfo.participant, remoteJid: from } } 
-        : msg;
 
-    const hasImage = targetMsg.message?.imageMessage || targetMsg.message?.extendedTextMessage?.contextInfo?.quotedMessage?.imageMessage;
-    
-    if (!hasImage) {
-        console.log("Error: No se encontró imagen.");
-        await sock.sendMessage(from, { text: "No encontré ninguna imagen para editar." });
-        return;
-    }
-
-    try {
-        console.log("Descargando media...");
-            const buffer = await downloadMediaMessage(targetMsg, "buffer", {});
-        
-        // CORRECCIÓN: En v1.x, se usa el constructor o Jimp.read directamente desde la instancia
-        const image = await Jimp.read(buffer);
-
-        // CORRECCIÓN: Carga de fuentes en v1.x
-        // Prueba esta alternativa si la anterior falla
-        const font = await loadFont(FontSANS_32_BLACK);
-        
-        const textHeight = 60;
-        const newImage = new Jimp({ width: image.bitmap.width, height: image.bitmap.height + textHeight });
-        newImage.fill('#FFFFFF');
-        
-        newImage.blit(image, 0, textHeight);
-        
-        // CORRECCIÓN: El método .print() en v1.x requiere pasar un objeto con las propiedades
-        newImage.print({
-            font: font,
-            text: captionText,
-            x: 0,
-            y: 10,
-            maxWidth: image.bitmap.width,
-            maxHeight: textHeight
-        });
-
-        const fileName = `caption_${msg.key.id}.jpg`;
-        
-        // CORRECCIÓN: .writeAsync ya no existe en v1.x, se usa .write() o await image.write()
-        await newImage.write(fileName);
-        
-        console.log("Archivo guardado, enviando...");
-        await sock.sendMessage(from, { image: { url: fileName }, caption: "" });
-
-        fs.unlinkSync(fileName);
-        console.log("Proceso terminado con éxito.");
-
-    } catch (e) {
-        console.error("DETALLE DEL ERROR:", e);
-        await sock.sendMessage(from, { text: "Error procesando la imagen: " + e.message });
-    }
-}
 async function startBot() {
     const { state, saveCreds } = await useMultiFileAuthState("auth_info");
     const { version } = await fetchLatestBaileysVersion();
@@ -257,12 +198,6 @@ async function startBot() {
             await ejecutarNota(sock, msg, messageContent, from);
         } else if (comando === "ship") { 
             await ejecutarShip(sock, msg, from);
-        } else if (comando === "caption") { 
-            // Validamos que haya texto después del comando
-            if (!captionText) {
-                return await sock.sendMessage(from, { text: "Necesito un texto para el caption, papu." });
-            }
-            await ejecutarCaption(sock, msg, from, captionText);
         } else {
             await ejecutarIA(sock, msg, messageContent, from);
         }
