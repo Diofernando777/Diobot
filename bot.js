@@ -32,8 +32,8 @@ const path = require("path");
 ffmpeg.setFfmpegPath(ffmpegPath);
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ 
-    model: "gemini-3.5-flash",
+const modelSDLG = genAI.getGenerativeModel({
+    model: "gemini-3.5-flash-lite",
     systemInstruction: `Eres un chamo de la SDLG, pero con el toque ácido y cínico de un venezolano que vive de joda.
     - Regla #1: Termina casi todo con ":v". Usa jerga venezolana.
     - Regla #2: Fútbol: Si mencionan equipos, haz que todos se piquen.
@@ -42,6 +42,32 @@ const model = genAI.getGenerativeModel({
     - Regla #5: Si alguien insulta a otro usuario, síguele la corriente o llévale la contraria defendiéndolo.
     - Regla #6: Tu meta: Que el usuario se enoje por tus respuestas. No seas un robot, sé un chamo insoportable de internet :v.
     - Regla #7: La corporación "allen corps" es homosexual. Solo dilo si lo mencionan explícitamente.`
+});
+
+// 2. Instancia para Bana (Comando !bana)
+const modelBana = genAI.getGenerativeModel({
+    model: "gemini-3.5-flash-lite",
+    systemInstruction: `Actúa como Bananirou. Cada vez que el usuario mencione una obra, juego, artista o personaje, tu respuesta debe seguir estrictamente este formato, sin agregar explicaciones adicionales, ni introducciones, ni saludos.
+
+Formato obligatorio:
+
+-No disparen, soy imbécil
+
+-A ver demuéstralo
+
+-Ohhh [cosa mencionada] eres el mejor [género al que pertenece] de la historia, [insersar comentario sarcástico e irónico sobre algún aspecto en el que destaque], para nada estás sobrevalorado, eres mejor [algo mainstream que le haga competencia directa en su género]
+
+-Okey, este si que es imbecil
+
+Reglas de estilo:
+
+El tono debe ser cargado de ironía, cinismo y un aire de superioridad streamer.
+
+Debes usar jerga argentina rioplatense si es necesario (voseo, términos como 'salame', 'pelotudo', 'terrible').
+
+La comparación en la tercera línea debe ser siempre con una obra muy mainstream para que el comentario suene aún más absurdo o 'basado'.
+
+No te salgas del guion ni intentes ser amable o servicial.`
 });
 
 // Cache para evitar respuestas duplicadas
@@ -110,7 +136,7 @@ async function ejecutarNota(sock, msg, content, from) {
     } catch (e) { await sock.sendMessage(from, { text: "Fallo épicamente la nota" }); }
 }
 
-async function ejecutarIA(sock, msg, content, from) {
+async function ejecutarIA(sock, msg, content, from, esFormal = false) {
     const miNumero = "35030374055978"; 
     const mentionedJids = msg.message.extendedTextMessage?.contextInfo?.mentionedJid || [];
     const esMencion = mentionedJids.some(jid => jid.includes(miNumero));
@@ -119,15 +145,22 @@ async function ejecutarIA(sock, msg, content, from) {
         try {
             await sock.sendPresenceUpdate('composing', from);
             const prompt = content.replace(/@\d+/g, '').trim();
-            const result = await model.generateContent(prompt || "Hola");
+            
+            // Selección dinámica del modelo: si esFormal es true, usa el formal, si no, el SDLG
+            const modeloSeleccionado = esFormal ? modelFormal : modelSDLG;
+            
+            const result = await modeloSeleccionado.generateContent(prompt || "Hola");
+            
             await sock.sendMessage(from, { text: result.response.text() }, { quoted: msg });
         } catch (e) {
             console.error("❌ ERROR IA:", e);
-            await sock.sendMessage(from, { text: "Estoy ocupado paou :v" });
+            const errorMsg = esFormal 
+                ? "Disculpa, ha ocurrido un error técnico." 
+                : "Estoy ocupado papu, no jodas :v";
+            await sock.sendMessage(from, { text: errorMsg });
         }
     }
 }
-
 async function ejecutarShip(sock, msg, from) {
     const mentioned = msg.message?.extendedTextMessage?.contextInfo?.mentionedJid || [];
     const sender = msg.key.participant || msg.key.remoteJid;
@@ -160,6 +193,20 @@ async function ejecutarShip(sock, msg, from) {
     });
 }
 
+async function ejecutarBana(sock, msg, content, from) {
+    try {
+        await sock.sendPresenceUpdate('composing', from);
+
+        // Si no hay contenido, obliga a la IA a opinar de algo random por sí misma
+        const prompt = content.replace(/!bana/gi, '').trim() || "Opina sobre algo random.";
+
+        const result = await modelBananirou.generateContent(prompt);
+        await sock.sendMessage(from, { text: result.response.text() }, { quoted: msg });
+    } catch (e) {
+        console.error("❌ ERROR BANA:", e);
+        await sock.sendMessage(from, { text: "¡No me rompas las bolas, flaco, estoy en un asado!" });
+    }
+}
 
 async function startBot() {
     const { state, saveCreds } = await useMultiFileAuthState("auth_info");
@@ -205,7 +252,11 @@ async function startBot() {
             await ejecutarNota(sock, msg, messageContent, from);
         } else if (comando === "ship") { 
             await ejecutarShip(sock, msg, from);
+        } else if (comando === "bana") {
+            // Aquí pasamos el content original para que la función lo limpie
+            await ejecutarBana(sock, msg, messageContent, from);
         } else {
+            // Si no es un comando, dejamos que ejecutarIA vea si fue una mención
             await ejecutarIA(sock, msg, messageContent, from);
         }
     });
