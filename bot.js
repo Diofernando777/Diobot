@@ -26,6 +26,7 @@ const puppeteer = require("puppeteer");
 const fs = require("fs");
 const path = require("path");
 const Jimp = require('jimp');
+const { downloadMediaMessage } = require('@whiskeysockets/baileys')
 
 
 ffmpeg.setFfmpegPath(ffmpegPath);
@@ -151,10 +152,6 @@ async function ejecutarShip(sock, msg, from) {
     });
 }
 
-// Asegúrate de importar la clase Jimp desde el paquete principal
-const Jimp = require('jimp');
-const fs = require('fs');
-const { downloadMediaMessage } = require('@whiskeysockets/baileys');
 
 async function ejecutarCaption(sock, msg, from, captionText) {
     console.log("--- Iniciando proceso de imagen ---");
