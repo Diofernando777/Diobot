@@ -25,6 +25,8 @@ const ffmpegPath = require("ffmpeg-static");
 const puppeteer = require("puppeteer");
 const fs = require("fs");
 const path = require("path");
+const Jimp = require('jimp');
+const fs = require('fs');
 
 ffmpeg.setFfmpegPath(ffmpegPath);
 
@@ -127,59 +129,66 @@ async function ejecutarIA(sock, msg, content, from) {
 
 async function ejecutarShip(sock, msg, from) {
     const mentioned = msg.message?.extendedTextMessage?.contextInfo?.mentionedJid || [];
-    const sender = msg.key.participant || msg.key.remoteJid;
+    const sender = msg.key.participant || msg.key.remoteJid; // El que envía el comando
 
-    let usuario1, usuario2;
-
-    if (mentioned.length === 1) {
-        usuario1 = sender;
-        usuario2 = mentioned[0];
-    } else if (mentioned.length >= 2) {
-        usuario1 = mentioned[0];
-        usuario2 = mentioned[1];
-    } else {
-        return await sock.sendMessage(from, { text: "Debes mencionar a 1 o 2 personas." });
+    if (mentioned.length === 0) {
+        return await sock.sendMessage(from, { text: "Menciona a alguien, papu." });
     }
 
-    // Calcular porcentaje
+    const usuario1 = sender; // ID del emisor
+    const usuario2 = mentioned[0]; // ID del mencionado
     const compatibility = Math.floor(Math.random() * 101);
 
-    const resultado = `*Resultado* \n\n` +
+    // Formateamos el texto usando @, esto crea el "tag" visual
+    const resultado = `*Resultado de Pareja* 🚢\n\n` +
                       `👤 @${usuario1.split('@')[0]} + @${usuario2.split('@')[0]}\n` +
                       `❤️ Compatibilidad: ${compatibility}%`;
 
+    // IMPORTANTE: El array 'mentions' es lo que hace que los números se vuelvan "clickeables"
     await sock.sendMessage(from, { 
-        text: resultado, 
-        mentions: [usuario1, usuario2] 
+        text: resultado,
+        mentions: [usuario1, usuario2] // Aquí le dices a WhatsApp: "estos son los números que deben ser menciones"
     });
 }
 
 async function ejecutarCaption(sock, msg, from, captionText) {
-    // Definimos el origen: si hay cita, usamos el multimedia citado; si no, el mensaje actual
-    const isQuoted = msg.message?.extendedTextMessage?.contextInfo?.quotedMessage;
-    const targetMsg = isQuoted ? { message: isQuoted, key: { ...msg.key, participant: msg.message.extendedTextMessage.contextInfo.participant, remoteJid: from } } : msg;
+    const quotedMessage = msg.message?.extendedTextMessage?.contextInfo?.quotedMessage;
+    const targetMsg = quotedMessage ? { message: quotedMessage, key: { ...msg.key, participant: msg.message.extendedTextMessage.contextInfo.participant, remoteJid: from } } : msg;
 
     try {
         const buffer = await downloadMediaMessage(targetMsg, "buffer", {});
+        const image = await Jimp.read(buffer);
+
+        // Configuramos el texto
+        const font = await Jimp.loadFont(Jimp.FONT_SANS_64_BLACK); // Fuente grande
         
-        // Verificamos qué tipo de mensaje es
-        const msgType = Object.keys(targetMsg.message)[0];
+        // Creamos una nueva imagen con espacio extra arriba para el texto
+        const newImage = new Jimp(image.bitmap.width, image.bitmap.height + 100, '#FFFFFF');
         
-        if (msgType === 'imageMessage') {
-            await sock.sendMessage(from, { image: buffer, caption: captionText });
-            
-        } else if (msgType === 'videoMessage') {
-            const isGif = targetMsg.message.videoMessage.gifPlayback;
-            await sock.sendMessage(from, { 
-                video: buffer, 
-                caption: captionText,
-                gifPlayback: isGif
-            });
-        } else {
-            await sock.sendMessage(from, { text: "No se encontró una imagen o video válida" });
-        }
+        // Pegamos la imagen original abajo
+        newImage.blit(image, 0, 100);
+        
+        // Escribimos el texto centrado arriba
+        newImage.print(
+            font, 
+            0, 0, 
+            { text: captionText, alignmentX: Jimp.HORIZONTAL_ALIGN_CENTER, alignmentY: Jimp.VERTICAL_ALIGN_MIDDLE }, 
+            image.bitmap.width, 
+            100
+        );
+
+        // Guardamos y enviamos
+        const pathSalida = `./temp_caption_${msg.key.id}.jpg`;
+        await newImage.writeAsync(pathSalida);
+        
+        await sock.sendMessage(from, { image: { url: pathSalida } });
+
+        // Limpieza
+        fs.unlinkSync(pathSalida);
+
     } catch (e) {
-        await sock.sendMessage(from, { text: "Error procesando el media" });
+        console.error("Error editando imagen:", e);
+        await sock.sendMessage(from, { text: "No pude editar la imagen, papu." });
     }
 }
 
