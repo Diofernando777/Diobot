@@ -26,6 +26,7 @@ const puppeteer = require("puppeteer");
 const fs = require("fs");
 const path = require("path");
 const { Jimp } = require('jimp');
+const { loadFont, FontSANS_32_BLACK } = require('@jimp/font');
 
 
 
@@ -178,7 +179,7 @@ async function ejecutarCaption(sock, msg, from, captionText) {
 
         // CORRECCIÓN: Carga de fuentes en v1.x
         // Prueba esta alternativa si la anterior falla
-        const font = await Jimp.loadFont('https://jimp.dev/assets/fonts/open-sans-32-black.fnt');
+        const font = await loadFont(FontSANS_32_BLACK);
         
         const textHeight = 60;
         const newImage = new Jimp({ width: image.bitmap.width, height: image.bitmap.height + textHeight });
