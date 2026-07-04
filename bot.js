@@ -25,7 +25,7 @@ const ffmpegPath = require("ffmpeg-static");
 const puppeteer = require("puppeteer");
 const fs = require("fs");
 const path = require("path");
-const Jimp = require('jimp');
+const { Jimp } = require('jimp');
 
 
 
@@ -171,7 +171,7 @@ async function ejecutarCaption(sock, msg, from, captionText) {
 
     try {
         console.log("Descargando media...");
-        const buffer = await downloadMediaMessage(targetMsg, "buffer", {});
+            const buffer = await downloadMediaMessage(targetMsg, "buffer", {});
         
         // CORRECCIÓN: En v1.x, se usa el constructor o Jimp.read directamente desde la instancia
         const image = await Jimp.read(buffer);
