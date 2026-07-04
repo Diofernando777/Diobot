@@ -208,36 +208,49 @@ async function ejecutarBana(sock, msg, content, from) {
     }
 }
 
-async function cum(buffer, tipo, rutaSalida) {
-    const rutaPng = path.join(__dirname, 'overlay.png'); // PNG en la raíz
+async function cum(sock, msg, messageContent, from) {
+    const isImage = msg.message?.imageMessage;
+    const isVideo = msg.message?.videoMessage;
+    const isMedia = isImage || isVideo;
 
+    if (!isMedia) return; // Si no hay foto/video, no hace nada
+
+    const tipo = isImage ? 'image' : 'video';
+    
+    // 1. Descargamos el buffer
+    const stream = await downloadContentFromMessage(isMedia, tipo);
+    let buffer = Buffer.from([]);
+    for await (const chunk of stream) buffer = Buffer.concat([buffer, chunk]);
+
+    // 2. Definimos rutas
+    const rutaPng = path.join(__dirname, 'overlay.png');
+    const rutaSalida = path.join(__dirname, 'temp_output.mp4');
+
+    // 3. Procesamos según el tipo (aquí unificamos la lógica dentro de cum)
+    let resultado;
     if (tipo === 'image') {
         const imagenBase = sharp(buffer);
         const metadata = await imagenBase.metadata();
-
         const pngBuffer = await sharp(rutaPng)
             .resize(metadata.width, metadata.height, { fit: 'fill' })
             .toBuffer();
-
-        return await imagenBase.composite([{ input: pngBuffer }]).toBuffer();
-
-    } else if (tipo === 'video') {
+        resultado = await imagenBase.composite([{ input: pngBuffer }]).toBuffer();
+    } else {
+        // Lógica de video (ffmpeg)
         const tempVideo = path.join(__dirname, 'temp_input.mp4');
         fs.writeFileSync(tempVideo, buffer);
-
-        return new Promise((resolve, reject) => {
+        resultado = await new Promise((resolve, reject) => {
             ffmpeg(tempVideo)
                 .input(rutaPng)
                 .complexFilter(['overlay=0:0'])
                 .save(rutaSalida)
-                .on('end', () => {
-                    const videoFinal = fs.readFileSync(rutaSalida);
-                    // Opcional: fs.unlinkSync(tempVideo);
-                    resolve(videoFinal);
-                })
-                .on('error', (err) => reject(err));
+                .on('end', () => resolve(fs.readFileSync(rutaSalida)))
+                .on('error', reject);
         });
     }
+
+    // 4. Enviamos el resultado
+    await sock.sendMessage(from, { [tipo]: resultado });
 }
 
 async function startBot() {
