@@ -25,7 +25,7 @@ const ffmpegPath = require("ffmpeg-static");
 const puppeteer = require("puppeteer");
 const fs = require("fs");
 const path = require("path");
-const Jimp = require('jimp').Jimp;
+const Jimp = require('jimp');
 
 
 ffmpeg.setFfmpegPath(ffmpegPath);
