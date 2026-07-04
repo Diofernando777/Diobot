@@ -153,42 +153,45 @@ async function ejecutarShip(sock, msg, from) {
 
 async function ejecutarCaption(sock, msg, from, captionText) {
     const quotedMessage = msg.message?.extendedTextMessage?.contextInfo?.quotedMessage;
-    const targetMsg = quotedMessage ? { message: quotedMessage, key: { ...msg.key, participant: msg.message.extendedTextMessage.contextInfo.participant, remoteJid: from } } : msg;
+    const targetMsg = quotedMessage 
+        ? { message: quotedMessage, key: { ...msg.key, participant: msg.message.extendedTextMessage.contextInfo.participant, remoteJid: from } } 
+        : msg;
 
     try {
         const buffer = await downloadMediaMessage(targetMsg, "buffer", {});
         const image = await Jimp.read(buffer);
 
-        // Configuramos el texto
-        const font = await Jimp.loadFont(Jimp.FONT_SANS_64_BLACK); // Fuente grande
+        // 1. Usar fuente predeterminada interna de Jimp
+        const font = await Jimp.loadFont(Jimp.FONT_SANS_32_BLACK);
         
-        // Creamos una nueva imagen con espacio extra arriba para el texto
-        const newImage = new Jimp(image.bitmap.width, image.bitmap.height + 100, '#FFFFFF');
+        // 2. Definir dimensiones
+        const textHeight = 60;
+        const newImage = new Jimp(image.bitmap.width, image.bitmap.height + textHeight, '#FFFFFF');
         
-        // Pegamos la imagen original abajo
-        newImage.blit(image, 0, 100);
-        
-        // Escribimos el texto centrado arriba
+        // 3. Pegar imagen original y escribir texto
+        newImage.blit(image, 0, textHeight);
         newImage.print(
             font, 
             0, 0, 
             { text: captionText, alignmentX: Jimp.HORIZONTAL_ALIGN_CENTER, alignmentY: Jimp.VERTICAL_ALIGN_MIDDLE }, 
             image.bitmap.width, 
-            100
+            textHeight
         );
 
-        // Guardamos y enviamos
-        const pathSalida = `./temp_caption_${msg.key.id}.jpg`;
-        await newImage.writeAsync(pathSalida);
+        // 4. Guardar temporalmente
+        const fileName = `caption_${msg.key.id}.jpg`;
+        await newImage.writeAsync(fileName);
         
-        await sock.sendMessage(from, { image: { url: pathSalida } });
+        // 5. Enviar
+        await sock.sendMessage(from, { image: { url: fileName }, caption: "" });
 
-        // Limpieza
-        fs.unlinkSync(pathSalida);
+        // 6. Limpiar
+        fs.unlinkSync(fileName);
 
     } catch (e) {
-        console.error("Error editando imagen:", e);
-        await sock.sendMessage(from, { text: "No pude editar la imagen, papu." });
+        // Esto te dirá el error real en la consola de tu servidor
+        console.error("DETALLE DEL ERROR:", e); 
+        await sock.sendMessage(from, { text: "Error procesando la imagen: " + e.message });
     }
 }
 
