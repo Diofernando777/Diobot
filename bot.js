@@ -130,28 +130,35 @@ async function ejecutarIA(sock, msg, content, from) {
 
 async function ejecutarShip(sock, msg, from) {
     const mentioned = msg.message?.extendedTextMessage?.contextInfo?.mentionedJid || [];
-    const sender = msg.key.participant || msg.key.remoteJid; // El que envía el comando
+    const sender = msg.key.participant || msg.key.remoteJid;
 
     if (mentioned.length === 0) {
-        return await sock.sendMessage(from, { text: "Menciona a alguien, papu." });
+        return await sock.sendMessage(from, { text: "Menciona al menos a una persona, papu." });
     }
 
-    const usuario1 = sender; // ID del emisor
-    const usuario2 = mentioned[0]; // ID del mencionado
+    let usuario1, usuario2;
+
+    if (mentioned.length >= 2) {
+        // Caso: Dos personas mencionadas -> Se usan las dos mencionadas
+        usuario1 = mentioned[0];
+        usuario2 = mentioned[1];
+    } else {
+        // Caso: Una sola persona mencionada -> Se usa el emisor + el mencionado
+        usuario1 = sender;
+        usuario2 = mentioned[0];
+    }
+
     const compatibility = Math.floor(Math.random() * 101);
 
-    // Formateamos el texto usando @, esto crea el "tag" visual
     const resultado = `*Resultado de Pareja* ❤️\n\n` +
                       `👤 @${usuario1.split('@')[0]} + @${usuario2.split('@')[0]}\n` +
                       `❤️ Compatibilidad: ${compatibility}%`;
 
-    // IMPORTANTE: El array 'mentions' es lo que hace que los números se vuelvan "clickeables"
     await sock.sendMessage(from, { 
         text: resultado,
-        mentions: [usuario1, usuario2] // Aquí le dices a WhatsApp: "estos son los números que deben ser menciones"
+        mentions: [usuario1, usuario2]
     });
 }
-
 
 
 async function startBot() {
