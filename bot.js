@@ -26,7 +26,7 @@ const puppeteer = require("puppeteer");
 const fs = require("fs");
 const path = require("path");
 const Jimp = require('jimp');
-const { downloadMediaMessage } = require('@whiskeysockets/baileys')
+
 
 
 ffmpeg.setFfmpegPath(ffmpegPath);
