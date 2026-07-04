@@ -177,7 +177,8 @@ async function ejecutarCaption(sock, msg, from, captionText) {
         const image = await Jimp.read(buffer);
 
         // CORRECCIÓN: Carga de fuentes en v1.x
-        const font = await Jimp.loadFont(Jimp.FONT_SANS_32_BLACK);
+        // Prueba esta alternativa si la anterior falla
+        const font = await Jimp.loadFont('https://jimp.dev/assets/fonts/open-sans-32-black.fnt');
         
         const textHeight = 60;
         const newImage = new Jimp({ width: image.bitmap.width, height: image.bitmap.height + textHeight });
