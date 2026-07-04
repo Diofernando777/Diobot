@@ -152,65 +152,61 @@ async function ejecutarShip(sock, msg, from) {
 }
 
 async function ejecutarCaption(sock, msg, from, captionText) {
-const { Jimp } = require('jimp');
-const fs = require('fs');
-const { downloadMediaMessage } = require('@whiskeysockets/baileys');
-
-async function ejecutarCaption(sock, msg, from, captionText) {
+    console.log("--- Iniciando proceso de imagen ---");
+    
     const quotedMessage = msg.message?.extendedTextMessage?.contextInfo?.quotedMessage;
     const targetMsg = quotedMessage 
         ? { message: quotedMessage, key: { ...msg.key, participant: msg.message.extendedTextMessage.contextInfo.participant, remoteJid: from } } 
         : msg;
 
-    try {
-        // 1. Descargar buffer
-        const buffer = await downloadMediaMessage(targetMsg, "buffer", {});
-        
-        // 2. Leer imagen usando la API de Jimp 1.6.1+
-        const image = await Jimp.read(buffer);
+    // Verificación: ¿El mensaje realmente tiene una imagen?
+    const hasImage = targetMsg.message?.imageMessage || targetMsg.message?.extendedTextMessage?.contextInfo?.quotedMessage?.imageMessage;
+    
+    if (!hasImage) {
+        console.log("Error: No se encontró imagen en el mensaje o cita.");
+        await sock.sendMessage(from, { text: "No encontré ninguna imagen para editar, papu." });
+        return;
+    }
 
-        // 3. Cargar fuente (Jimp v1.x usa la misma sintaxis de carga)
+    try {
+        console.log("Descargando media...");
+        const buffer = await downloadMediaMessage(targetMsg, "buffer", {});
+        console.log("Buffer recibido, tamaño:", buffer.length);
+        
+        const image = await Jimp.read(buffer);
+        console.log("Imagen cargada en Jimp.");
+
         const font = await Jimp.loadFont(Jimp.FONT_SANS_32_BLACK);
         
-        // 4. Crear imagen nueva con espacio para el texto
         const textHeight = 60;
-        const newImage = new Jimp({ 
-            width: image.bitmap.width, 
-            height: image.bitmap.height + textHeight 
-        });
-        
-        // Fondo blanco
+        const newImage = new Jimp({ width: image.bitmap.width, height: image.bitmap.height + textHeight });
         newImage.fill('#FFFFFF');
         
-        // 5. Pegar la imagen original abajo y el texto arriba
         newImage.blit(image, 0, textHeight);
         
-        // 6. Imprimir texto con configuración moderna
         newImage.print({
             font: font,
             text: captionText,
             x: 0,
-            y: 10, // Un pequeño margen superior
+            y: 10,
             maxWidth: image.bitmap.width,
             maxHeight: textHeight
         });
 
-        // 7. Guardar y enviar
         const fileName = `caption_${msg.key.id}.jpg`;
         await newImage.writeAsync(fileName);
         
+        console.log("Archivo guardado, enviando...");
         await sock.sendMessage(from, { image: { url: fileName }, caption: "" });
 
-        // 8. Limpiar archivo
         fs.unlinkSync(fileName);
+        console.log("Proceso terminado con éxito.");
 
     } catch (e) {
         console.error("DETALLE DEL ERROR:", e);
         await sock.sendMessage(from, { text: "Error procesando la imagen: " + e.message });
     }
 }
-}
-
 async function startBot() {
     const { state, saveCreds } = await useMultiFileAuthState("auth_info");
     const { version } = await fetchLatestBaileysVersion();
