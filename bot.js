@@ -125,6 +125,64 @@ async function ejecutarIA(sock, msg, content, from) {
     }
 }
 
+async function ejecutarShip(sock, msg, from) {
+    const mentioned = msg.message?.extendedTextMessage?.contextInfo?.mentionedJid || [];
+    const sender = msg.key.participant || msg.key.remoteJid;
+
+    let usuario1, usuario2;
+
+    if (mentioned.length === 1) {
+        usuario1 = sender;
+        usuario2 = mentioned[0];
+    } else if (mentioned.length >= 2) {
+        usuario1 = mentioned[0];
+        usuario2 = mentioned[1];
+    } else {
+        return await sock.sendMessage(from, { text: "Debes mencionar a 1 o 2 personas." });
+    }
+
+    // Calcular porcentaje
+    const compatibility = Math.floor(Math.random() * 101);
+
+    const resultado = `*Resultado* \n\n` +
+                      `👤 @${usuario1.split('@')[0]} + @${usuario2.split('@')[0]}\n` +
+                      `❤️ Compatibilidad: ${compatibility}%`;
+
+    await sock.sendMessage(from, { 
+        text: resultado, 
+        mentions: [usuario1, usuario2] 
+    });
+}
+
+async function ejecutarCaption(sock, msg, from, captionText) {
+    // Definimos el origen: si hay cita, usamos el multimedia citado; si no, el mensaje actual
+    const isQuoted = msg.message?.extendedTextMessage?.contextInfo?.quotedMessage;
+    const targetMsg = isQuoted ? { message: isQuoted, key: { ...msg.key, participant: msg.message.extendedTextMessage.contextInfo.participant, remoteJid: from } } : msg;
+
+    try {
+        const buffer = await downloadMediaMessage(targetMsg, "buffer", {});
+        
+        // Verificamos qué tipo de mensaje es
+        const msgType = Object.keys(targetMsg.message)[0];
+        
+        if (msgType === 'imageMessage') {
+            await sock.sendMessage(from, { image: buffer, caption: captionText });
+            
+        } else if (msgType === 'videoMessage') {
+            const isGif = targetMsg.message.videoMessage.gifPlayback;
+            await sock.sendMessage(from, { 
+                video: buffer, 
+                caption: captionText,
+                gifPlayback: isGif
+            });
+        } else {
+            await sock.sendMessage(from, { text: "No se encontró una imagen o video válida" });
+        }
+    } catch (e) {
+        await sock.sendMessage(from, { text: "Error procesando el media" });
+    }
+}
+
 async function startBot() {
     const { state, saveCreds } = await useMultiFileAuthState("auth_info");
     const { version } = await fetchLatestBaileysVersion();
@@ -157,12 +215,24 @@ async function startBot() {
 
         const from = msg.key.remoteJid;
         const messageContent = msg.message.conversation || msg.message.extendedTextMessage?.text || "";
-        const comando = messageContent.toLowerCase().split(' ')[0];
+        
+        // Extraemos el comando y el texto del caption
+        const partes = messageContent.split(' ');
+        const comando = partes[0].toLowerCase();
+        const captionText = partes.slice(1).join(' ');
 
         if (comando === "sticker") {
             await ejecutarSticker(sock, msg, from);
         } else if (comando === "nota") {
             await ejecutarNota(sock, msg, messageContent, from);
+        } else if (comando === "ship") { 
+            await ejecutarShip(sock, msg, from);
+        } else if (comando === "caption") { 
+            // Validamos que haya texto después del comando
+            if (!captionText) {
+                return await sock.sendMessage(from, { text: "Necesito un texto para el caption, papu." });
+            }
+            await ejecutarCaption(sock, msg, from, captionText);
         } else {
             await ejecutarIA(sock, msg, messageContent, from);
         }
