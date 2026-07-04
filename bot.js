@@ -151,6 +151,11 @@ async function ejecutarShip(sock, msg, from) {
     });
 }
 
+// Asegúrate de importar la clase Jimp desde el paquete principal
+const Jimp = require('jimp');
+const fs = require('fs');
+const { downloadMediaMessage } = require('@whiskeysockets/baileys');
+
 async function ejecutarCaption(sock, msg, from, captionText) {
     console.log("--- Iniciando proceso de imagen ---");
     
@@ -159,23 +164,22 @@ async function ejecutarCaption(sock, msg, from, captionText) {
         ? { message: quotedMessage, key: { ...msg.key, participant: msg.message.extendedTextMessage.contextInfo.participant, remoteJid: from } } 
         : msg;
 
-    // Verificación: ¿El mensaje realmente tiene una imagen?
     const hasImage = targetMsg.message?.imageMessage || targetMsg.message?.extendedTextMessage?.contextInfo?.quotedMessage?.imageMessage;
     
     if (!hasImage) {
-        console.log("Error: No se encontró imagen en el mensaje o cita.");
-        await sock.sendMessage(from, { text: "No encontré ninguna imagen para editar, papu." });
+        console.log("Error: No se encontró imagen.");
+        await sock.sendMessage(from, { text: "No encontré ninguna imagen para editar." });
         return;
     }
 
     try {
         console.log("Descargando media...");
         const buffer = await downloadMediaMessage(targetMsg, "buffer", {});
-        console.log("Buffer recibido, tamaño:", buffer.length);
         
+        // CORRECCIÓN: En v1.x, se usa el constructor o Jimp.read directamente desde la instancia
         const image = await Jimp.read(buffer);
-        console.log("Imagen cargada en Jimp.");
 
+        // CORRECCIÓN: Carga de fuentes en v1.x
         const font = await Jimp.loadFont(Jimp.FONT_SANS_32_BLACK);
         
         const textHeight = 60;
@@ -184,6 +188,7 @@ async function ejecutarCaption(sock, msg, from, captionText) {
         
         newImage.blit(image, 0, textHeight);
         
+        // CORRECCIÓN: El método .print() en v1.x requiere pasar un objeto con las propiedades
         newImage.print({
             font: font,
             text: captionText,
@@ -194,7 +199,9 @@ async function ejecutarCaption(sock, msg, from, captionText) {
         });
 
         const fileName = `caption_${msg.key.id}.jpg`;
-        await newImage.writeAsync(fileName);
+        
+        // CORRECCIÓN: .writeAsync ya no existe en v1.x, se usa .write() o await image.write()
+        await newImage.write(fileName);
         
         console.log("Archivo guardado, enviando...");
         await sock.sendMessage(from, { image: { url: fileName }, caption: "" });
