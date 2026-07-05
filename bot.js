@@ -265,72 +265,71 @@ async function cum(sock, msg, messageContent, from) {
     }
 }
 
-async function handleR34Command(sock, msg, text, from) {
-    // 1. Limpiar el texto para obtener solo los tags de búsqueda
-    // Quitamos la palabra "r34" del mensaje original
-    const query = text.replace(/r34/i, "").trim();
+async function handleR34Command(sock, msg, msgText, from) {
+    const rawText = msgText.replace(/r34/i, "").trim();
+    
+    // --- NUEVO: Manejo del comando 'help' ---
+    if (rawText.toLowerCase() === "help") {
+        const helpMsg = `*🔍 Comandos de búsqueda (r34)*\n\n` +
+                        `Para buscar contenido, utiliza el comando *r34* seguido de tus palabras clave (tags). Puedes combinar varios términos para una búsqueda más precisa.\n\n` +
+                        `*Ejemplos de uso:*\n` +
+                        `• r34 tifa lockhart\n` +
+                        `• r34 tifa, final fantasy, 1girl\n` +
+                        `• r34 genshin impact, raiden shogun, order:score\n\n` +
+                        `*Notas:*\n` +
+                        `• Separa los tags con espacios o comas.\n` +
+                        `• El bot enviará el archivo directamente sin texto adicional.`;
+        
+        await sock.sendMessage(from, { text: helpMsg });
+        return;
+    }
+    // ----------------------------------------
+
+    const query = rawText;
+    const API_KEY = "5a1faf4cff57900725489c3574871b40899219725b467ed2059b19caf6771c9bf23726a7785b026835ecb39413a6ce9d884f1e8804dde67bd52ae646459ff554";
+    const USER_ID = "6475331";
     
     if (!query) {
-        await sock.sendMessage(from, { text: "⚠️ Debes escribir algo para buscar. Ejemplo: *r34 tifa lockhart*" });
+        await sock.sendMessage(from, { text: "Debes escribir algo. Usa *r34 help* para ver cómo buscar." });
         return;
     }
 
     try {
-        // 2. Consultar la API
-        const url = `https://api.rule34.xxx/index.php?page=dapi&s=post&q=index&json=1&tags=${encodeURIComponent(query)}`;
-        const { data: posts } = await axios.get(url);
+        const url = `https://api.rule34.xxx/index.php?page=dapi&s=post&q=index&json=1&tags=${encodeURIComponent(query)}&api_key=${API_KEY}&user_id=${USER_ID}&limit=100`;
+        
+        console.log(`[R34] Consultando API para: ${query}`);
+        
+        const { data: posts } = await axios.get(url, {
+            headers: { 'User-Agent': 'Mozilla/5.0' }
+        });
 
         if (!posts || posts.length === 0) {
-            await sock.sendMessage(from, { text: "❌ No encontré resultados con esos tags." });
+            await sock.sendMessage(from, { text: "No encontré resultados para esos tags." });
             return;
         }
 
-        // 3. Selección aleatoria con filtro de tamaño (máximo 15MB para WhatsApp)
-        let randomPost;
-        let fileUrl;
-        let found = false;
-        const LIMIT = 15 * 1024 * 1024; 
+        const randomPost = posts[Math.floor(Math.random() * posts.length)];
+        const fileUrl = randomPost?.file_url;
 
-        // Intentamos 5 veces encontrar un archivo que no sea pesado
-        for (let i = 0; i < 5; i++) {
-            randomPost = posts[Math.floor(Math.random() * posts.length)];
-            fileUrl = randomPost.file_url;
-            
-            // Verificar peso sin descargar el archivo completo
-            const head = await axios.head(fileUrl);
-            const contentSize = parseInt(head.headers['content-length']);
-
-            if (contentSize && contentSize < LIMIT) {
-                found = true;
-                break;
-            }
-        }
-
-        if (!found) {
-            await sock.sendMessage(from, { text: "⚠️ Los resultados encontrados son demasiado pesados. Intenta con otros tags." });
+        if (!fileUrl) {
+            await sock.sendMessage(from, { text: "Error Rule 34." });
             return;
         }
 
-        // 4. Enviar archivo según sea video o imagen
         const isVideo = fileUrl.endsWith('.mp4') || fileUrl.endsWith('.webm');
         
         if (isVideo) {
-            await sock.sendMessage(from, { 
-                video: { url: fileUrl }, 
-                caption: `✅ Resultado para: ${query}` 
-            });
+            await sock.sendMessage(from, { video: { url: fileUrl } });
         } else {
-            await sock.sendMessage(from, { 
-                image: { url: fileUrl }, 
-                caption: `✅ Resultado para: ${query}` 
-            });
+            await sock.sendMessage(from, { image: { url: fileUrl } });
         }
+        console.log("[R34] Envío realizado con éxito.");
+
     } catch (error) {
-        console.error("Error en R34:", error);
-        await sock.sendMessage(from, { text: "❌ Ocurrió un error al buscar en la API." });
+        console.error("[R34] Error en la API:", error.message);
+        await sock.sendMessage(from, { text: "Error Rule 34." });
     }
 }
-
 async function startBot() {
     // RECOMENDACIÓN: Si el bot sigue cerrando, añade un try-catch aquí para capturar el error de Auth
     try {
