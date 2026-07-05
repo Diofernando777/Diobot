@@ -10,6 +10,7 @@
     "@distube/ytdl-core": "^4.16.12",
     "@google/generative-ai": "^0.24.1",
     "@whiskeysockets/baileys": "^6.7.23",
+    "axios": "^1.18.1",
     "dotenv": "^17.4.2",
     "ffmpeg-static": "^5.3.0",
     "fluent-ffmpeg": "^2.1.3",

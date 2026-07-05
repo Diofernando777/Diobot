@@ -18,6 +18,8 @@ const {
 
 ffmpeg.setFfmpegPath(ffmpegPath);
 
+const axios = require('axios');
+
 // --- SISTEMA DE PAUSA ---
 const handleCrash = (err, type) => {
     console.error(`\n❌ ERROR CRÍTICO (${type}):`, err);
@@ -263,6 +265,72 @@ async function cum(sock, msg, messageContent, from) {
     }
 }
 
+async function handleR34Command(sock, msg, text, from) {
+    // 1. Limpiar el texto para obtener solo los tags de búsqueda
+    // Quitamos la palabra "r34" del mensaje original
+    const query = text.replace(/r34/i, "").trim();
+    
+    if (!query) {
+        await sock.sendMessage(from, { text: "⚠️ Debes escribir algo para buscar. Ejemplo: *r34 tifa lockhart*" });
+        return;
+    }
+
+    try {
+        // 2. Consultar la API
+        const url = `https://api.rule34.xxx/index.php?page=dapi&s=post&q=index&json=1&tags=${encodeURIComponent(query)}`;
+        const { data: posts } = await axios.get(url);
+
+        if (!posts || posts.length === 0) {
+            await sock.sendMessage(from, { text: "❌ No encontré resultados con esos tags." });
+            return;
+        }
+
+        // 3. Selección aleatoria con filtro de tamaño (máximo 15MB para WhatsApp)
+        let randomPost;
+        let fileUrl;
+        let found = false;
+        const LIMIT = 15 * 1024 * 1024; 
+
+        // Intentamos 5 veces encontrar un archivo que no sea pesado
+        for (let i = 0; i < 5; i++) {
+            randomPost = posts[Math.floor(Math.random() * posts.length)];
+            fileUrl = randomPost.file_url;
+            
+            // Verificar peso sin descargar el archivo completo
+            const head = await axios.head(fileUrl);
+            const contentSize = parseInt(head.headers['content-length']);
+
+            if (contentSize && contentSize < LIMIT) {
+                found = true;
+                break;
+            }
+        }
+
+        if (!found) {
+            await sock.sendMessage(from, { text: "⚠️ Los resultados encontrados son demasiado pesados. Intenta con otros tags." });
+            return;
+        }
+
+        // 4. Enviar archivo según sea video o imagen
+        const isVideo = fileUrl.endsWith('.mp4') || fileUrl.endsWith('.webm');
+        
+        if (isVideo) {
+            await sock.sendMessage(from, { 
+                video: { url: fileUrl }, 
+                caption: `✅ Resultado para: ${query}` 
+            });
+        } else {
+            await sock.sendMessage(from, { 
+                image: { url: fileUrl }, 
+                caption: `✅ Resultado para: ${query}` 
+            });
+        }
+    } catch (error) {
+        console.error("Error en R34:", error);
+        await sock.sendMessage(from, { text: "❌ Ocurrió un error al buscar en la API." });
+    }
+}
+
 async function startBot() {
     // RECOMENDACIÓN: Si el bot sigue cerrando, añade un try-catch aquí para capturar el error de Auth
     try {
@@ -305,6 +373,7 @@ async function startBot() {
             else if (comando === "cum") await cum(sock, msg, msgText, from);
             else if (comando === "ship") await ejecutarShip(sock, msg, from);
             else if (comando === "bana") await ejecutarBana(sock, msg, msgText, from);
+            else if (comando === "r34") await handleR34Command(sock, msg, msgText, from);
             else await ejecutarIA(sock, msg, msgText, from);
         });
     } catch (e) {
