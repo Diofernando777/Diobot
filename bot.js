@@ -1,35 +1,36 @@
 require('dotenv').config();
-
-// --- SISTEMA DE PAUSA PARA CMD ---
-const handleCrash = (err, type) => {
-    console.error(`\n❌ ERROR CRÍTICO (${type}):`, err);
-    console.log("\n[PAUSE] Presiona ENTER para cerrar...");
-    try { require('fs').readSync(0, Buffer.alloc(1), 0, 1); } catch(e) {}
-    process.exit(1);
-};
-process.on('uncaughtException', (err) => handleCrash(err, 'Uncaught Exception'));
-process.on('unhandledRejection', (reason) => handleCrash(reason, 'Unhandled Rejection'));
-
+const fs = require("fs");
+const path = require("path");
+const qrcode = require("qrcode-terminal");
+const sharp = require("sharp");
+const ffmpeg = require("fluent-ffmpeg");
+const ffmpegPath = require("ffmpeg-static");
+const puppeteer = require("puppeteer"); // <-- CORREGIDO: Importación añadida
+const { GoogleGenerativeAI } = require("@google/generative-ai");
 const { 
     default: makeWASocket, 
     useMultiFileAuthState, 
     DisconnectReason, 
     fetchLatestBaileysVersion, 
+    downloadContentFromMessage,
     downloadMediaMessage 
 } = require("@whiskeysockets/baileys");
-const { GoogleGenerativeAI } = require("@google/generative-ai");
-const qrcode = require("qrcode-terminal");
-const sharp = require("sharp");
-const ffmpeg = require("fluent-ffmpeg");
-const ffmpegPath = require("ffmpeg-static");
-const puppeteer = require("puppeteer");
-const fs = require("fs");
-const path = require("path");
-
-
-
 
 ffmpeg.setFfmpegPath(ffmpegPath);
+
+// --- SISTEMA DE PAUSA ---
+const handleCrash = (err, type) => {
+    console.error(`\n❌ ERROR CRÍTICO (${type}):`, err);
+    console.log("\n[PAUSE] Presiona ENTER para cerrar...");
+    try { fs.readSync(0, Buffer.alloc(1), 0, 1); } catch(e) {}
+    process.exit(1);
+};
+process.on('uncaughtException', (err) => handleCrash(err, 'Uncaught Exception'));
+process.on('unhandledRejection', (reason) => handleCrash(reason, 'Unhandled Rejection'));
+
+// --- ESTRUCTURA DE COMANDOS ---
+ // <-- CORREGIDO: Declarado una sola vez
+
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const modelSDLG = genAI.getGenerativeModel({
@@ -209,104 +210,105 @@ async function ejecutarBana(sock, msg, content, from) {
 }
 
 async function cum(sock, msg, messageContent, from) {
-    const isImage = msg.message?.imageMessage;
-    const isVideo = msg.message?.videoMessage;
-    const isMedia = isImage || isVideo;
+    const m = msg.message;
+    const isImage = m.imageMessage || m.extendedTextMessage?.contextInfo?.quotedMessage?.imageMessage;
+    const isVideo = m.videoMessage || m.extendedTextMessage?.contextInfo?.quotedMessage?.videoMessage;
+    const media = isImage || isVideo;
 
-    if (!isMedia) return; // Si no hay foto/video, no hace nada
-
-    const tipo = isImage ? 'image' : 'video';
-    
-    // 1. Descargamos el buffer
-    const stream = await downloadContentFromMessage(isMedia, tipo);
-    let buffer = Buffer.from([]);
-    for await (const chunk of stream) buffer = Buffer.concat([buffer, chunk]);
-
-    // 2. Definimos rutas
-    const rutaPng = path.join(__dirname, 'overlay.png');
-    const rutaSalida = path.join(__dirname, 'temp_output.mp4');
-
-    // 3. Procesamos según el tipo (aquí unificamos la lógica dentro de cum)
-    let resultado;
-    if (tipo === 'image') {
-        const imagenBase = sharp(buffer);
-        const metadata = await imagenBase.metadata();
-        const pngBuffer = await sharp(rutaPng)
-            .resize(metadata.width, metadata.height, { fit: 'fill' })
-            .toBuffer();
-        resultado = await imagenBase.composite([{ input: pngBuffer }]).toBuffer();
-    } else {
-        // Lógica de video (ffmpeg)
-        const tempVideo = path.join(__dirname, 'temp_input.mp4');
-        fs.writeFileSync(tempVideo, buffer);
-        resultado = await new Promise((resolve, reject) => {
-            ffmpeg(tempVideo)
-                .input(rutaPng)
-                .complexFilter(['overlay=0:0'])
-                .save(rutaSalida)
-                .on('end', () => resolve(fs.readFileSync(rutaSalida)))
-                .on('error', reject);
-        });
+    if (!media) {
+        await sock.sendMessage(from, { text: "Debes enviar o responder a una imagen o video." });
+        return;
     }
 
-    // 4. Enviamos el resultado
-    await sock.sendMessage(from, { [tipo]: resultado });
+    try {
+        const tipo = isImage ? 'image' : 'video';
+        // Se usa downloadContentFromMessage correctamente
+        const stream = await downloadContentFromMessage(media, tipo);
+        let buffer = Buffer.from([]);
+        for await (const chunk of stream) buffer = Buffer.concat([buffer, chunk]);
+
+        const rutaPng = path.join(__dirname, 'overlay.png');
+        if (!fs.existsSync(rutaPng)) {
+            await sock.sendMessage(from, { text: "❌ Falta el archivo 'overlay.png'." });
+            return;
+        }
+
+        let resultado;
+        if (tipo === 'image') {
+            const imagenBase = sharp(buffer);
+            const metadata = await imagenBase.metadata();
+            const pngBuffer = await sharp(rutaPng).resize(metadata.width, metadata.height, { fit: 'fill' }).toBuffer();
+            resultado = await imagenBase.composite([{ input: pngBuffer }]).toBuffer();
+            await sock.sendMessage(from, { image: resultado });
+        } else {
+            const tempVideo = path.join(__dirname, 'temp_input.mp4');
+            const rutaSalida = path.join(__dirname, 'temp_output.mp4');
+            fs.writeFileSync(tempVideo, buffer);
+            
+            await new Promise((resolve, reject) => {
+                ffmpeg(tempVideo)
+                    .input(rutaPng)
+                    .complexFilter(['overlay=0:0'])
+                    .save(rutaSalida)
+                    .on('end', () => resolve(fs.readFileSync(rutaSalida)))
+                    .on('error', reject);
+            });
+            await sock.sendMessage(from, { video: fs.readFileSync(rutaSalida) });
+            fs.unlinkSync(tempVideo); // Limpieza
+            fs.unlinkSync(rutaSalida);
+        }
+    } catch (error) {
+        console.error("Error en cum:", error);
+        await sock.sendMessage(from, { text: "❌ Error procesando multimedia." });
+    }
 }
 
 async function startBot() {
-    const { state, saveCreds } = await useMultiFileAuthState("auth_info");
-    const { version } = await fetchLatestBaileysVersion();
-    const sock = makeWASocket({ 
-        version, 
-        auth: state, 
-        printQRInTerminal: true, 
-        browser: ["Bot Rolo", "Chrome", "120.0.0"],
-        syncFullHistory: false
-    });
+    // RECOMENDACIÓN: Si el bot sigue cerrando, añade un try-catch aquí para capturar el error de Auth
+    try {
+        const { state, saveCreds } = await useMultiFileAuthState("auth_info");
+        const { version } = await fetchLatestBaileysVersion();
+        const sock = makeWASocket({ 
+            version, 
+            auth: state, 
+            printQRInTerminal: false, 
+            browser: ["Bot Rolo", "Chrome", "120.0.0"],
+            syncFullHistory: false
+        });
 
-    sock.ev.on("connection.update", (update) => {
-        const { connection, lastDisconnect, qr } = update;
-        if (qr) qrcode.generate(qr, { small: true });
-        if (connection === "open") console.log("✅ BOT CONECTADO");
-        if (connection === "close" && lastDisconnect?.error?.output?.statusCode !== DisconnectReason.loggedOut) startBot();
-    });
-    
-    sock.ev.on("creds.update", saveCreds);
-
-    sock.ev.on("messages.upsert", async ({ messages, type }) => {
-        if (type !== 'notify') return;
-        const msg = messages[0];
-        if (!msg.message || msg.key.fromMe) return;
-
-        // Evitar duplicados
-        if (processedMessages.has(msg.key.id)) return;
-        processedMessages.add(msg.key.id);
-        setTimeout(() => processedMessages.delete(msg.key.id), 5000);
-
-        const from = msg.key.remoteJid;
-        const messageContent = msg.message.conversation || msg.message.extendedTextMessage?.text || "";
+        sock.ev.on("connection.update", (update) => {
+            const { connection, lastDisconnect, qr } = update;
+            if (qr) qrcode.generate(qr, { small: true });
+            if (connection === "open") console.log("✅ BOT CONECTADO");
+            if (connection === "close" && lastDisconnect?.error?.output?.statusCode !== DisconnectReason.loggedOut) startBot();
+        });
         
-        // Extraemos el comando y el texto del caption
-        const partes = messageContent.split(' ');
-        const comando = partes[0].toLowerCase();
-        const captionText = partes.slice(1).join(' ');
+        sock.ev.on("creds.update", saveCreds);
 
-        if (comando === "sticker") {
-            await ejecutarSticker(sock, msg, from);
-        } else if (comando === "nota") {
-            await ejecutarNota(sock, msg, messageContent, from);
-        }else if (comando === "cum") {
-            await cum(sock, msg, messageContent, from);
-        } else if (comando === "ship") { 
-            await ejecutarShip(sock, msg, from);
-        } else if (comando === "bana") {
-            // Aquí pasamos el content original para que la función lo limpie
-            await ejecutarBana(sock, msg, messageContent, from);
-        } else {
-            // Si no es un comando, dejamos que ejecutarIA vea si fue una mención
-            await ejecutarIA(sock, msg, messageContent, from);
-        }
-    });
+        sock.ev.on("messages.upsert", async ({ messages, type }) => {
+            if (type !== 'notify') return;
+            const msg = messages[0];
+            if (!msg.message || msg.key.fromMe) return;
+
+            if (processedMessages.has(msg.key.id)) return;
+            processedMessages.add(msg.key.id);
+            setTimeout(() => processedMessages.delete(msg.key.id), 5000);
+
+            const from = msg.key.remoteJid;
+            const msgText = msg.message.conversation || msg.message.extendedTextMessage?.text || msg.message.imageMessage?.caption || msg.message.videoMessage?.caption || "";
+            const comando = msgText.trim().split(/ +/)[0].toLowerCase();
+            
+            console.log("DEBUG: Comando detectado ->", comando);
+
+            if (comando === "sticker") await ejecutarSticker(sock, msg, from);
+            else if (comando === "nota") await ejecutarNota(sock, msg, msgText, from);
+            else if (comando === "cum") await cum(sock, msg, msgText, from);
+            else if (comando === "ship") await ejecutarShip(sock, msg, from);
+            else if (comando === "bana") await ejecutarBana(sock, msg, msgText, from);
+            else await ejecutarIA(sock, msg, msgText, from);
+        });
+    } catch (e) {
+        console.error("❌ Error en startBot:", e);
+    }
 }
-
 startBot();
