@@ -330,6 +330,65 @@ async function handleR34Command(sock, msg, msgText, from) {
         await sock.sendMessage(from, { text: "Error Rule 34." });
     }
 }
+
+
+async function handleGloboCommand(sock, msg, from) {
+    // 1. Detectar si hay imagen o video en el mensaje citado o adjunto
+    const media = await downloadMediaMessage(msg); // Debes tener tu función de descarga aquí
+    const inputPath = `./temp/input_media`;
+    const outputPath = `./temp/output_media`;
+    const globoPath = './assets/globo.png';
+    
+    fs.writeFileSync(inputPath, media);
+
+    try {
+        const metadata = await sharp(inputPath).metadata();
+        const isVideo = metadata.format === 'mp4' || msg.message.videoMessage; // Ajusta según tu libreria
+
+        if (!isVideo) {
+            // Lógica para IMAGEN
+            const globoMeta = await sharp(globoPath).metadata();
+            const resizedGlobo = await sharp(globoPath).resize({ width: metadata.width }).toBuffer();
+            const gResizedMeta = await sharp(resizedGlobo).metadata();
+
+            await sharp({
+                create: {
+                    width: metadata.width,
+                    height: metadata.height + gResizedMeta.height,
+                    channels: 4,
+                    background: { r: 255, g: 255, b: 255, alpha: 1 }
+                }
+            })
+            .composite([
+                { input: resizedGlobo, top: 0, left: 0 },
+                { input: inputPath, top: gResizedMeta.height, left: 0 }
+            ])
+            .toFile(outputPath);
+
+            await sock.sendMessage(from, { image: { url: outputPath } });
+
+        } else {
+            // Lógica para VIDEO
+            const gMeta = await sharp(globoPath).metadata();
+            
+            ffmpeg(inputPath)
+                .input(globoPath)
+                .complexFilter([
+                    `[1:v]scale=${metadata.width}:-1[globo]`,
+                    `[0:v]pad=iw:ih+${Math.round(metadata.width * (gMeta.height / gMeta.width))}:0:ih_plus_globo:color=white[video_padded]`, // Ajuste dinámico
+                    `[video_padded][globo]overlay=0:0`
+                ])
+                .save(outputPath)
+                .on('end', async () => {
+                    await sock.sendMessage(from, { video: { url: outputPath } });
+                });
+        }
+    } catch (err) {
+        console.error("Error en comando globo:", err);
+        await sock.sendMessage(from, { text: "❌ Error al procesar el globo." });
+    }
+}
+
 async function startBot() {
     // RECOMENDACIÓN: Si el bot sigue cerrando, añade un try-catch aquí para capturar el error de Auth
     try {
@@ -373,6 +432,7 @@ async function startBot() {
             else if (comando === "ship") await ejecutarShip(sock, msg, from);
             else if (comando === "bana") await ejecutarBana(sock, msg, msgText, from);
             else if (comando === "r34") await handleR34Command(sock, msg, msgText, from);
+            else if (comando === "globo") await handleGloboCommand(sock, msg, from);
             else await ejecutarIA(sock, msg, msgText, from);
         });
     } catch (e) {
