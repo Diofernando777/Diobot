@@ -30,6 +30,22 @@ const handleCrash = (err, type) => {
 process.on('uncaughtException', (err) => handleCrash(err, 'Uncaught Exception'));
 process.on('unhandledRejection', (reason) => handleCrash(reason, 'Unhandled Rejection'));
 
+
+
+const cheemsifyLogic = (text) => {
+    const expr = /[aáeéiíoóuú]+[^aáeéiíoóuúmnñry]/gi;
+    return text.split(' ').map((word) => {
+        const letters = word.match(/[a-z]/gi) || [];
+        const upper = letters.filter(l => l === l.toUpperCase()).length;
+        const charToInsert = upper > letters.length / 2 ? 'M' : 'm';
+        
+        return word.replace(expr, (value) => {
+            return value.slice(0, value.length - 1) + charToInsert + value.slice(value.length - 1);
+        });
+    }).join(' ');
+};
+
+
 // --- ESTRUCTURA DE COMANDOS ---
  // <-- CORREGIDO: Declarado una sola vez
 
@@ -71,6 +87,28 @@ Debes usar jerga argentina rioplatense si es necesario (voseo, términos como 's
 La comparación en la tercera línea debe ser siempre con una obra muy mainstream para que el comentario suene aún más absurdo o 'basado'.
 
 No te salgas del guion ni intentes ser amable o servicial.`
+});
+
+
+const modelBiblia = genAI.getGenerativeModel({
+    model: "gemini-3.1-flash-lite",
+    systemInstruction: `.Entendido, papu, me quedó claro. Nada de agregar basura ni quitarle importancia al asunto, solo voy a traducir tu texto a la lengua de la grasa, pero con todo el power, bien exagerado, como si estuvieras leyendo un post épico de la vieja escuela :v.
+
+Aquí tienes el nuevo systemInstruction ajustado, prro:
+
+System Instruction:
+
+Tu única misión es tomar cualquier texto que el usuario te pase y reescribirlo íntegramente usando el lenguaje de la "Grasa" (SDLG) de manera extremadamente exagerada.
+
+Tus reglas sagradas:
+
+Fidelidad: No agregues información nueva, no quites puntos clave y no cambies el sentido de lo que el usuario escribió. El mensaje original debe permanecer intacto en su significado.
+
+Transformación: Reescribe todo el contenido traduciéndolo al lenguaje grasoso más intenso posible. Usa abuso de ":v", "xd", "papu", "prro", "elfa", "kbron", "hail grasa", "momos", "vyr", y toda la jerga clásica sin censura ni timidez.
+
+Estilo: Sé lo más exagerado que puedas. Si el texto original es serio, tú lo conviertes en un post digno del muro de la legión, lleno de sarcasmo y jerga pesada, pero manteniendo la estructura del mensaje original.
+
+Cero cortes: No añadas introducciones como "Claro, aquí tienes" o "Espero que te guste". Solo entrega el texto transformado. Si el usuario te da un texto, tú me devuelves ese mismo texto pero bien grasoso, sin decir ni una palabra de más fuera de la traducción.`
 });
 
 // Cache para evitar respuestas duplicadas
@@ -333,59 +371,141 @@ async function handleR34Command(sock, msg, msgText, from) {
 
 
 async function handleGloboCommand(sock, msg, from) {
-    // 1. Detectar si hay imagen o video en el mensaje citado o adjunto
-    const media = await downloadMediaMessage(msg); // Debes tener tu función de descarga aquí
-    const inputPath = `./temp/input_media`;
-    const outputPath = `./temp/output_media`;
-    const globoPath = './assets/globo.png';
+    const id = msg.key.id;
+    const tempDir = path.join(__dirname, "temp");
+    if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir);
+
+    const quoted = msg.message.extendedTextMessage?.contextInfo?.quotedMessage;
+    const msgType = msg.message.imageMessage || msg.message.videoMessage || quoted?.imageMessage || quoted?.videoMessage;
     
-    fs.writeFileSync(inputPath, media);
+    if (!msgType) return await sock.sendMessage(from, { text: "Responde a una imagen, video o GIF." });
+
+    const isVideo = msgType.mimetype.includes("video") || msgType.mimetype.includes("gif");
+    const inputPath = path.join(tempDir, `in_${id}${isVideo ? ".mp4" : ".png"}`);
+    const outputPath = path.join(tempDir, `out_${id}${isVideo ? ".mp4" : ".png"}`);
+    const globoPath = path.join(__dirname, "assets", "globo.png");
+
+    const cleanup = () => {
+        [inputPath, outputPath].forEach(file => { if (fs.existsSync(file)) fs.unlinkSync(file); });
+    };
 
     try {
-        const metadata = await sharp(inputPath).metadata();
-        const isVideo = metadata.format === 'mp4' || msg.message.videoMessage; // Ajusta según tu libreria
+        const stream = await downloadContentFromMessage(msgType, isVideo ? "video" : "image");
+        let buffer = Buffer.from([]);
+        for await (const chunk of stream) buffer = Buffer.concat([buffer, chunk]);
+        fs.writeFileSync(inputPath, buffer);
 
         if (!isVideo) {
-            // Lógica para IMAGEN
-            const globoMeta = await sharp(globoPath).metadata();
-            const resizedGlobo = await sharp(globoPath).resize({ width: metadata.width }).toBuffer();
-            const gResizedMeta = await sharp(resizedGlobo).metadata();
+            // FLUJO IMAGEN: Convertimos a PNG para asegurar compatibilidad
+            const pngPath = inputPath.replace(".png", "_conv.png");
+            await new Promise((resolve, reject) => {
+                ffmpeg(inputPath).output(pngPath).on('end', resolve).on('error', reject).run();
+            });
+
+            const meta = await sharp(pngPath).metadata();
+            const gResized = await sharp(globoPath).resize({ width: meta.width }).toBuffer();
+            const gMeta = await sharp(gResized).metadata();
 
             await sharp({
                 create: {
-                    width: metadata.width,
-                    height: metadata.height + gResizedMeta.height,
+                    width: meta.width,
+                    height: meta.height + gMeta.height,
                     channels: 4,
                     background: { r: 255, g: 255, b: 255, alpha: 1 }
                 }
             })
             .composite([
-                { input: resizedGlobo, top: 0, left: 0 },
-                { input: inputPath, top: gResizedMeta.height, left: 0 }
+                { input: gResized, top: 0, left: 0 },
+                { input: pngPath, top: gMeta.height, left: 0 }
             ])
             .toFile(outputPath);
 
             await sock.sendMessage(from, { image: { url: outputPath } });
-
+            if (fs.existsSync(pngPath)) fs.unlinkSync(pngPath);
+            cleanup();
         } else {
-            // Lógica para VIDEO
-            const gMeta = await sharp(globoPath).metadata();
+            // FLUJO VIDEO/GIF: NUNCA convertimos a PNG, usamos FFmpeg directamente
+            // Obtenemos dimensiones del video original mediante ffprobe (o metadata básica)
+            // Para evitar errores, usamos un filtro que ajusta el globo al ancho del video
             
             ffmpeg(inputPath)
                 .input(globoPath)
                 .complexFilter([
-                    `[1:v]scale=${metadata.width}:-1[globo]`,
-                    `[0:v]pad=iw:ih+${Math.round(metadata.width * (gMeta.height / gMeta.width))}:0:ih_plus_globo:color=white[video_padded]`, // Ajuste dinámico
+                    // Redimensionar globo al ancho del video
+                    `[1:v]scale=iw:-1[globo]`,
+                    // Crear espacio arriba y colocar el globo
+                    `[0:v]pad=iw:ih+((iw/iw)*100):0:((iw/iw)*100):color=white[video_padded]`, 
                     `[video_padded][globo]overlay=0:0`
                 ])
                 .save(outputPath)
                 .on('end', async () => {
-                    await sock.sendMessage(from, { video: { url: outputPath } });
-                });
+                    await sock.sendMessage(from, { video: { url: outputPath }, gifPlayback: msgType.mimetype.includes("gif") });
+                    cleanup();
+                })
+                .on('error', (err) => { console.error("Error FFmpeg:", err); cleanup(); });
         }
     } catch (err) {
-        console.error("Error en comando globo:", err);
-        await sock.sendMessage(from, { text: "❌ Error al procesar el globo." });
+        console.error("Error final:", err);
+        cleanup();
+        await sock.sendMessage(from, { text: "❌ Error al procesar: " + err.message });
+    }
+}
+
+const handleCheemsCommand = async (sock, msg, from) => {
+    const quotedMsg = msg.message.extendedTextMessage?.contextInfo?.quotedMessage;
+    const quotedText = quotedMsg?.conversation || quotedMsg?.extendedTextMessage?.text;
+    const rawText = msg.message.conversation || msg.message.extendedTextMessage?.text || "";
+    const commandArgs = rawText.split(' ').slice(1).join(' ');
+
+    const textToProcess = commandArgs || quotedText || "Nom pumsimstem temxtom pampum";
+    const result = cheemsifyLogic(textToProcess);
+
+    await sock.sendMessage(from, { text: result }, { quoted: msg });
+};
+
+async function handleBibliaCommand(sock, msg, from) {
+    const API_KEY = '7hQJSMS2IIWfJCSZKk2bs';
+    const BIBLE_ID = '826f63861180e056-01';
+    
+    try {
+        // 1. Obtener lista de libros
+        const { data: booksData } = await axios.get(`https://api.scripture.api.bible/v1/bibles/${BIBLE_ID}/books`, {
+            headers: { 'api-key': API_KEY }
+        });
+
+        // 2. Elegir libro al azar
+        const books = booksData.data;
+        const randomBook = books[Math.floor(Math.random() * books.length)];
+        
+        // 3. Obtener capítulos
+        const { data: chaptersData } = await axios.get(`https://api.scripture.api.bible/v1/bibles/${BIBLE_ID}/books/${randomBook.id}/chapters`, {
+            headers: { 'api-key': API_KEY }
+        });
+
+        // 4. Elegir capítulo (excluyendo 'intro')
+        const chapters = chaptersData.data.filter(c => c.number !== 'intro');
+        const randomChapter = chapters[Math.floor(Math.random() * chapters.length)];
+
+        // 5. Obtener texto del capítulo
+        const { data: verseData } = await axios.get(`https://api.scripture.api.bible/v1/bibles/${BIBLE_ID}/chapters/${randomChapter.id}?content-type=text`, {
+            headers: { 'api-key': API_KEY }
+        });
+
+        const textoCrudo = verseData.data.content.replace(/<[^>]*>?/gm, '').trim();
+
+        // 6. Procesar con tu modelo global
+        const prompt = `Como un padre amoroso contándole un cuento a su hijo, explica este pasaje de forma sencilla: "${textoCrudo}"`;
+        const result = await modelBiblia.generateContent(prompt);
+        const respuestaTransformada = result.response.text();
+
+        // 7. Envío
+        await sock.sendMessage(from, { 
+            text: `📖 *${randomBook.name} ${randomChapter.number}*\n\n🎙️ *Papá dice:*\n${respuestaTransformada}` 
+        }, { quoted: msg });
+        
+    } catch (err) {
+        console.error("Error en handleBibliaCommand:", err);
+        await sock.sendMessage(from, { text: "❌ No pude consultar la Biblia en este momento." }, { quoted: msg });
     }
 }
 
@@ -433,6 +553,8 @@ async function startBot() {
             else if (comando === "bana") await ejecutarBana(sock, msg, msgText, from);
             else if (comando === "r34") await handleR34Command(sock, msg, msgText, from);
             else if (comando === "globo") await handleGloboCommand(sock, msg, from);
+            else if (comando === "cheems") await handleCheemsCommand(sock, msg, from);
+            else if (comando === "papubiblia") await handleBibliaCommand(sock, msg, from);
             else await ejecutarIA(sock, msg, msgText, from);
         });
     } catch (e) {
