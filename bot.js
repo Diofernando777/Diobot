@@ -509,6 +509,33 @@ async function handleBibliaCommand(sock, msg, from) {
     }
 }
 
+
+async function ejecutarPeaky(sock, msg, content, from) {
+    try {
+        const browser = await puppeteer.launch({ headless: "new", args: ['--no-sandbox'] });
+        const page = await browser.newPage();
+        
+        // La ruta a tu archivo local
+        const url = `file://${path.join(__dirname, 'peaky', 'index.html')}?texto=${encodeURIComponent(content.slice(7))}`;
+        
+        await page.goto(url, { waitUntil: 'networkidle0' });
+        
+        // Establecemos el viewport exactamente a 720x429
+        await page.setViewport({ width: 720, height: 429 });
+        
+        // Capturamos el área completa sin deformar (recorte 1:1)
+        const screenshot = await page.screenshot({ 
+            clip: { x: 0, y: 0, width: 720, height: 429 } 
+        });
+        
+        await browser.close();
+        await sock.sendMessage(from, { image: screenshot }, { quoted: msg });
+    } catch (e) { 
+        console.error("Error en Peaky:", e);
+        await sock.sendMessage(from, { text: "Fallo épicamente el Peaky" }); 
+    }
+}
+
 async function startBot() {
     // RECOMENDACIÓN: Si el bot sigue cerrando, añade un try-catch aquí para capturar el error de Auth
     try {
@@ -548,6 +575,7 @@ async function startBot() {
 
             if (comando === "sticker") await ejecutarSticker(sock, msg, from);
             else if (comando === "nota") await ejecutarNota(sock, msg, msgText, from);
+            else if (comando === "peaky") await ejecutarPeaky(sock, msg, msgText, from);
             else if (comando === "cum") await cum(sock, msg, msgText, from);
             else if (comando === "ship") await ejecutarShip(sock, msg, from);
             else if (comando === "bana") await ejecutarBana(sock, msg, msgText, from);
