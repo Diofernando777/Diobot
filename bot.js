@@ -633,7 +633,7 @@ async function startBot() {
             else if (comando === "nota") await ejecutarNota(sock, msg, msgText, from);
             else if (comando === "peaky") await ejecutarPeaky(sock, msg, msgText, from);
             else if (comando === "dbz") await ejecutarDbz(sock, msg, msgText, from);
-            else if (comando === "homero") await ejecutarDbz(sock, msg, msgText, from);
+            else if (comando === "homero") await ejecutarHomero(sock, msg, msgText, from);
             else if (comando === "cum") await cum(sock, msg, msgText, from);
             else if (comando === "ship") await ejecutarShip(sock, msg, from);
             else if (comando === "bana") await ejecutarBana(sock, msg, msgText, from);
