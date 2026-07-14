@@ -565,28 +565,26 @@ async function ejecutarDbz(sock, msg, content, from) {
 
 async function ejecutarHomero(sock, msg, content, from) {
     try {
-        // Obtenemos el texto limpio eliminando el comando !dbz
-        const texto = content.replace(/^homero/i, "").trim();
-
         const browser = await puppeteer.launch({ headless: "new", args: ['--no-sandbox'] });
         const page = await browser.newPage();
         
-        // Ajuste de ruta: apunta a bot/dbz/index.html
-        const url = `file://${path.join(__dirname, 'homero', 'index.html')}?texto=${encodeURIComponent(texto)}`;
+        // La ruta a tu archivo local
+        const url = `file://${path.join(__dirname, 'homero', 'index.html')}?texto=${encodeURIComponent(content.slice(7))}`;
         
         await page.goto(url, { waitUntil: 'networkidle0' });
         
-        // Dimensiones específicas para DBZ: 853x480
-        await page.setViewport({ width: 853, height: 480 });
+        // Establecemos el viewport exactamente a 720x429
+        await page.setViewport({ width: 720, height: 429 });
         
+        // Capturamos el área completa sin deformar (recorte 1:1)
         const screenshot = await page.screenshot({ 
-            clip: { x: 0, y: 0, width: 853, height: 480 } 
+            clip: { x: 0, y: 0, width: 720, height: 429 } 
         });
         
         await browser.close();
         await sock.sendMessage(from, { image: screenshot }, { quoted: msg });
     } catch (e) { 
-        console.error("Error en DBZ:", e);
+        console.error("Error en Peaky:", e);
         await sock.sendMessage(from, { text: "Dou" }); 
     }
 }
