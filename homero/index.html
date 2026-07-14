@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #f0f0f0;
+        }
+        #imagen-container {
+            position: relative;
+        }
+        #imagen01 {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            
+        }
+        #cuadro-texto {
+            position: absolute;
+            top: 43px;
+            left: 350px;
+            width: 355px;
+            height: 343px;
+            background-color: transparent;
+            padding: 10px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        #texto-superpuesto {
+            color: #fc0303;
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            text-align: center;
+            max-width: 100%;
+            white-space: pre-line;
+            font-size: 70px; /* Tamaño inicial del texto más grande */
+           
+        }
+    </style>
+</head>
+<body>
+    <div id="imagen-container">
+        <img id="imagen01" src="imagenes/01.jpg" alt="Imagen 01">
+        <div id="cuadro-texto">
+            <div id="texto-superpuesto"></div>
+        </div>
+    </div>
+
+    <script>
+        const cuadroTexto = document.getElementById('cuadro-texto');
+        const textoSuperpuesto = document.getElementById('texto-superpuesto');
+
+        function ajustarTexto() {
+            const cuadroAncho = cuadroTexto.offsetWidth;
+            const cuadroAlto = cuadroTexto.offsetHeight;
+
+            let fontSize = 40; // Tamaño inicial del texto más grande
+
+            while (fontSize > 1) {
+                textoSuperpuesto.style.fontSize = fontSize + 'px';
+
+                if (
+                    textoSuperpuesto.scrollWidth <= cuadroAncho &&
+                    textoSuperpuesto.scrollHeight <= cuadroAlto
+                ) {
+                    break;
+                }
+
+                fontSize -= 1;
+            }
+        }
+
+        ajustarTexto();
+
+        window.addEventListener('resize', ajustarTexto);
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const textoParam = urlParams.get('texto');
+
+        if (textoParam) {
+            textoSuperpuesto.innerHTML = textoParam;
+            ajustarTexto();
+        }
+    </script>
+</body>
+</html>
