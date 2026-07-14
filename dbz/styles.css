@@ -1,0 +1,52 @@
+@font-face {
+    font-family: 'Chicago';
+    src: url('db.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    position: relative;
+    padding-top: 50px;
+    margin: 0;
+}
+
+.corner-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+    max-width: 100%;
+    height: auto;
+}
+
+.text-container {
+    width: 853px; /* Ancho igual al de la imagen */
+    height: 480px; /* Alto igual al de la imagen */
+    max-width: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+    margin: 0;
+    box-sizing: border-box;
+    overflow: hidden;
+    padding: 10px;
+}
+
+.custom-text {
+    font-family: 'Chicago', sans-serif;
+    font-size: 35px;
+    color: #f3d804;
+    text-align: center;
+}
+
+#captura-btn {
+    position: absolute;
+    top: 500px;
+    left: 150px;
+}

@@ -509,14 +509,13 @@ async function handleBibliaCommand(sock, msg, from) {
     }
 }
 
-
 async function ejecutarPeaky(sock, msg, content, from) {
     try {
         const browser = await puppeteer.launch({ headless: "new", args: ['--no-sandbox'] });
         const page = await browser.newPage();
         
         // La ruta a tu archivo local
-        const url = `file://${path.join(__dirname, 'peaky', 'index.html')}?texto=${encodeURIComponent(content.slice(7))}`;
+        const url = `file://${path.join(__dirname, 'peaky', 'index.html')}?texto=${encodeURIComponent(content.slice(6))}`;
         
         await page.goto(url, { waitUntil: 'networkidle0' });
         
@@ -533,6 +532,34 @@ async function ejecutarPeaky(sock, msg, content, from) {
     } catch (e) { 
         console.error("Error en Peaky:", e);
         await sock.sendMessage(from, { text: "Fallo épicamente el Peaky" }); 
+    }
+}
+
+async function ejecutarDbz(sock, msg, content, from) {
+    try {
+        // Obtenemos el texto limpio eliminando el comando !dbz
+        const texto = content.replace(/^dbz/i, "").trim();
+
+        const browser = await puppeteer.launch({ headless: "new", args: ['--no-sandbox'] });
+        const page = await browser.newPage();
+        
+        // Ajuste de ruta: apunta a bot/dbz/index.html
+        const url = `file://${path.join(__dirname, 'dbz', 'index.html')}?texto=${encodeURIComponent(texto)}`;
+        
+        await page.goto(url, { waitUntil: 'networkidle0' });
+        
+        // Dimensiones específicas para DBZ: 853x480
+        await page.setViewport({ width: 853, height: 480 });
+        
+        const screenshot = await page.screenshot({ 
+            clip: { x: 0, y: 0, width: 853, height: 480 } 
+        });
+        
+        await browser.close();
+        await sock.sendMessage(from, { image: screenshot }, { quoted: msg });
+    } catch (e) { 
+        console.error("Error en DBZ:", e);
+        await sock.sendMessage(from, { text: "Fallo épicamente el DBZ" }); 
     }
 }
 
@@ -576,6 +603,7 @@ async function startBot() {
             if (comando === "sticker") await ejecutarSticker(sock, msg, from);
             else if (comando === "nota") await ejecutarNota(sock, msg, msgText, from);
             else if (comando === "peaky") await ejecutarPeaky(sock, msg, msgText, from);
+            else if (comando === "dbz") await ejecutarDbz(sock, msg, msgText, from);
             else if (comando === "cum") await cum(sock, msg, msgText, from);
             else if (comando === "ship") await ejecutarShip(sock, msg, from);
             else if (comando === "bana") await ejecutarBana(sock, msg, msgText, from);
