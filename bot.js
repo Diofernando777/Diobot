@@ -595,6 +595,81 @@ async function ejecutarHomero(sock, msg, content, from) {
 }
 
 
+const FormData = require('form-data');
+
+
+async function handleCaraCommand(sock, msg, from) {
+    const isQuotedImage = msg.message?.extendedTextMessage?.contextInfo?.quotedMessage?.imageMessage;
+    const isDirectImage = msg.message?.imageMessage;
+
+    if (!isQuotedImage && !isDirectImage) return;
+
+    try {
+        const targetBuffer = await downloadMediaMessage(isDirectImage ? msg : { message: { imageMessage: isQuotedImage } }, 'buffer');
+
+        if (!fs.existsSync('./cara.png')) {
+            throw new Error("No existe cara.png");
+        }
+        const sourceBuffer = fs.readFileSync('./cara.png');
+
+        const form = new FormData();
+        form.append('source_image', sourceBuffer, { filename: 'cara.png' });
+        form.append('target_image', targetBuffer, { filename: 'target.jpg' });
+
+        const response = await axios.post('https://deepfake-face-swap-ai.p.rapidapi.com/swap-face', form, {
+            headers: {
+                ...form.getHeaders(),
+                'x-rapidapi-key': '55381c98cfmsh394c624aa1f6f9dp1c7d23jsn45453572f377',
+                'x-rapidapi-host': 'deepfake-face-swap-ai.p.rapidapi.com'
+            }
+        });
+
+        // Envía la imagen directamente sin mensajes de texto
+        await sock.sendMessage(from, { image: { url: response.data.image_url } });
+
+    } catch (e) {
+        console.error(e);
+        // Solo envía mensaje si ocurre un error[cite: 1]
+        await sock.sendMessage(from, { text: "Saxoul es muy pesado xdxdxdxd." });
+    }
+}
+
+async function handleCaraCommand2(sock, msg, from) {
+    const isQuotedImage = msg.message?.extendedTextMessage?.contextInfo?.quotedMessage?.imageMessage;
+    const isDirectImage = msg.message?.imageMessage;
+
+    if (!isQuotedImage && !isDirectImage) return;
+
+    try {
+        const targetBuffer = await downloadMediaMessage(isDirectImage ? msg : { message: { imageMessage: isQuotedImage } }, 'buffer');
+
+        if (!fs.existsSync('./cara1.png')) {
+            throw new Error("No existe cara1.png");
+        }
+        const sourceBuffer = fs.readFileSync('./cara1.png');
+
+        const form = new FormData();
+        form.append('source_image', sourceBuffer, { filename: 'cara1.png' });
+        form.append('target_image', targetBuffer, { filename: 'target.jpg' });
+
+        const response = await axios.post('https://deepfake-face-swap-ai.p.rapidapi.com/swap-face', form, {
+            headers: {
+                ...form.getHeaders(),
+                'x-rapidapi-key': '918cf6be1emshd476e5b23809898p165ba8jsn2c6ff829a7a0',
+                'x-rapidapi-host': 'deepfake-face-swap-ai.p.rapidapi.com'
+            }
+        });
+
+        // Envía la imagen directamente sin mensajes de texto
+        await sock.sendMessage(from, { image: { url: response.data.image_url } });
+
+    } catch (e) {
+        console.error(e);
+        // Solo envía mensaje si ocurre un error[cite: 1]
+        await sock.sendMessage(from, { text: "Andrey whigga." });
+    }
+}
+
 async function startBot() {
     // RECOMENDACIÓN: Si el bot sigue cerrando, añade un try-catch aquí para capturar el error de Auth
     try {
@@ -644,6 +719,8 @@ async function startBot() {
             else if (comando === "globo") await handleGloboCommand(sock, msg, from);
             else if (comando === "cheems") await handleCheemsCommand(sock, msg, from);
             else if (comando === "papubiblia") await handleBibliaCommand(sock, msg, from);
+            else if (comando === "saxoulealo") await handleCaraCommand(sock, msg, from);
+            else if (comando === "andreyficalo") await handleCaraCommand2(sock, msg, from);
             else await ejecutarIA(sock, msg, msgText, from);
         });
     } catch (e) {
