@@ -682,7 +682,7 @@ async function handleCaraCommand3(sock, msg, from) {
         if (!fs.existsSync('./cara2.png')) {
             throw new Error("No existe cara2.png");
         }
-        const sourceBuffer = fs.readFileSync('./cara1.png');
+        const sourceBuffer = fs.readFileSync('./cara2.png');
 
         const form = new FormData();
         form.append('source_image', sourceBuffer, { filename: 'cara2.png' });
