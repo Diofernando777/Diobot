@@ -301,50 +301,44 @@ async function cum(sock, msg, messageContent, from) {
 }
 
 async function handleR34Command(sock, msg, msgText, from) {
-    const rawText = msgText.replace(/r34/i, "").trim();
-    
-    // Listas de filtrado
-    const listaVergonzosa = ["umamusume"];
-    const listaShadowBan = ["loli", "shota", "child", "toddler", "cub", "gore", "furry", "feral", "umamusume"];
+    const rawText = msgText.toLowerCase().replace(/r34/g, "").trim();
+    const API_KEY = "5a1faf4cff57900725489c3574871b40899219725b467ed2059b19caf6771c9bf23726a7785b026835ecb39413a6ce9d884f1e8804dde67bd52ae646459ff554";
+    const USER_ID = "6475331";
 
-    if (!rawText) {
-        await sock.sendMessage(from, { text: "Uso: r34 [tags]" });
-        return;
-    }
+    const listaVergonzosa = ["umamusume"];
+    const listaShadowBan = ["loli", "shota", "child", "toddler", "cub", "gore", "furry", "anthro", "feral", "umamusume"];
+
+    if (!rawText) return await sock.sendMessage(from, { text: "Uso: r34 [tag]" });
 
     try {
-        // Pedimos 30 resultados
-        const url = `https://api.rule34.xxx/index.php?page=dapi&s=post&q=index&json=1&tags=${encodeURIComponent(rawText)}&limit=30`;
+        const url = `https://api.rule34.xxx/index.php?page=dapi&s=post&q=index&json=1&tags=${encodeURIComponent(rawText)}&limit=10&api_key=${API_KEY}&user_id=${USER_ID}`;
+        
         const response = await axios.get(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
 
-        // Detección mejorada de la estructura de datos
-        let posts = [];
-        if (Array.isArray(response.data)) {
-            posts = response.data;
-        } else if (response.data && Array.isArray(response.data.post)) {
-            posts = response.data.post;
+        // Verificación de respuesta válida
+        if (typeof response.data === 'string' || !Array.isArray(response.data)) {
+            return await sock.sendMessage(from, { text: "Error de autenticación o formato." });
         }
 
-        if (posts.length === 0) {
-            await sock.sendMessage(from, { text: "No se encontró nada." });
-            return;
-        }
+        const posts = response.data;
+        if (posts.length === 0) return await sock.sendMessage(from, { text: "No se encontro porno chido." });
 
-        // 1. Verificación: ¿Es mayormente contenido vergonzoso?
+        // 1. Filtro: Bloqueo por exceso de contenido "vergonzoso" (6 de 10)
         const countVergonzoso = posts.filter(p => {
             const tags = (p.tags || "").split(" ");
             return listaVergonzosa.some(t => tags.includes(t));
         }).length;
 
-        // Si 20 o más de los 30 son vergonzosos, bloqueamos
-        if (countVergonzoso >= 20) {
-            const imgPath = './no.png';
-            if (fs.existsSync(imgPath)) {
-                return await sock.sendMessage(from, { image: fs.readFileSync(imgPath) });
+        if (countVergonzoso >= 6) {
+            // Solo intenta enviar la imagen, nada más
+            if (fs.existsSync('./no.png')) {
+                return await sock.sendMessage(from, { image: fs.readFileSync('./no.png') });
             }
+            // Si el archivo no existe, el bot no hará nada (silencio total)
+            return;
         }
 
-        // 2. Filtrado: Eliminar todo lo que tenga ShadowBan de los que quedan
+        // 2. Filtro: ShadowBan
         const postsValidos = posts.filter(p => {
             const tags = (p.tags || "").split(" ");
             return !listaShadowBan.some(t => tags.includes(t));
@@ -354,20 +348,17 @@ async function handleR34Command(sock, msg, msgText, from) {
             return await sock.sendMessage(from, { text: "No quieres ver eso." });
         }
 
-        // 3. Selección y envío
+        // 3. Envío final
         const randomPost = postsValidos[Math.floor(Math.random() * postsValidos.length)];
-        const fileUrl = randomPost.file_url;
+        const isVideo = randomPost.file_url.endsWith('.mp4') || randomPost.file_url.endsWith('.webm');
 
-        const isVideo = fileUrl.endsWith('.mp4') || fileUrl.endsWith('.webm');
-        if (isVideo) {
-            await sock.sendMessage(from, { video: { url: fileUrl } });
-        } else {
-            await sock.sendMessage(from, { image: { url: fileUrl } });
-        }
+        return await sock.sendMessage(from, { 
+            [isVideo ? 'video' : 'image']: { url: randomPost.file_url }
+        });
 
     } catch (error) {
-        console.error("[R34] Error:", error.message);
-        await sock.sendMessage(from, { text: "Error en la búsqueda." });
+        console.error("ERROR CRÍTICO:", error.message);
+        await sock.sendMessage(from, { text: "No pude buscar pornito chido causa."});
     }
 }
 
