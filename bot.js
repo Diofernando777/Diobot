@@ -303,6 +303,8 @@ async function cum(sock, msg, messageContent, from) {
 async function handleR34Command(sock, msg, msgText, from) {
     const API_KEY = "5a1faf4cff57900725489c3574871b40899219725b467ed2059b19caf6771c9bf23726a7785b026835ecb39413a6ce9d884f1e8804dde67bd52ae646459ff554";
     const USER_ID = "6475331";
+    const listaShadowBan = ["loli", "shota", "child", "toddler", "cub", "gore", "furry", "anthro", "feral"];
+    const listaVergonzosa = ["umamusume"];
 
     // 1. Detectar si el usuario escribió "video" como comando de tipo
     // Usamos una expresión regular para quitar la palabra "video" sin importar si está al principio, medio o final
