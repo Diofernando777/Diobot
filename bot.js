@@ -305,7 +305,7 @@ async function handleR34Command(sock, msg, msgText, from) {
     
     // Listas de filtrado
     const listaVergonzosa = ["umamusume"];
-    const listaShadowBan = ["loli", "shota", "child", "toddler", "cub", "gore", "furry", "anthro", "feral", "umamusume"];
+    const listaShadowBan = ["loli", "shota", "child", "toddler", "cub", "gore", "furry", "feral", "umamusume"];
 
     if (!rawText) {
         await sock.sendMessage(from, { text: "Uso: r34 [tags]" });
@@ -317,15 +317,20 @@ async function handleR34Command(sock, msg, msgText, from) {
         const url = `https://api.rule34.xxx/index.php?page=dapi&s=post&q=index&json=1&tags=${encodeURIComponent(rawText)}&limit=30`;
         const response = await axios.get(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
 
-        // Corrección: Asegurar que 'posts' siempre sea un arreglo antes de filtrar
-        const posts = Array.isArray(response.data) ? response.data : [];
+        // Detección mejorada de la estructura de datos
+        let posts = [];
+        if (Array.isArray(response.data)) {
+            posts = response.data;
+        } else if (response.data && Array.isArray(response.data.post)) {
+            posts = response.data.post;
+        }
 
         if (posts.length === 0) {
-            await sock.sendMessage(from, { text: "No se encontró porno chido" });
+            await sock.sendMessage(from, { text: "No se encontró nada." });
             return;
         }
 
-        // 1. Verificación: ¿Es mayormente contenido vergonzoso (umamusume)?
+        // 1. Verificación: ¿Es mayormente contenido vergonzoso?
         const countVergonzoso = posts.filter(p => {
             const tags = (p.tags || "").split(" ");
             return listaVergonzosa.some(t => tags.includes(t));
@@ -362,9 +367,12 @@ async function handleR34Command(sock, msg, msgText, from) {
 
     } catch (error) {
         console.error("[R34] Error:", error.message);
-        await sock.sendMessage(from, { text: "Error." });
+        await sock.sendMessage(from, { text: "Error en la búsqueda." });
     }
 }
+
+
+
 async function handleGloboCommand(sock, msg, from) {
     const id = msg.key.id;
     const tempDir = path.join(__dirname, "temp");
