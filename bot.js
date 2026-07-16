@@ -305,7 +305,7 @@ async function handleR34Command(sock, msg, msgText, from) {
     
     // Listas de filtrado
     const listaVergonzosa = ["umamusume"];
-    const listaShadowBan = ["loli", "shota", "child", "toddler", "cub", "gore", "furry", "anthro", "feral","umamusume"];
+    const listaShadowBan = ["loli", "shota", "child", "toddler", "cub", "gore", "furry", "anthro", "feral", "umamusume"];
 
     if (!rawText) {
         await sock.sendMessage(from, { text: "Uso: r34 [tags]" });
@@ -315,15 +315,17 @@ async function handleR34Command(sock, msg, msgText, from) {
     try {
         // Pedimos 30 resultados
         const url = `https://api.rule34.xxx/index.php?page=dapi&s=post&q=index&json=1&tags=${encodeURIComponent(rawText)}&limit=30`;
-        const { data: posts } = await axios.get(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
+        const response = await axios.get(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
 
-        if (!posts || posts.length === 0) {
-            await sock.sendMessage(from, { text: "No se encontro porno chido" });
+        // Corrección: Asegurar que 'posts' siempre sea un arreglo antes de filtrar
+        const posts = Array.isArray(response.data) ? response.data : [];
+
+        if (posts.length === 0) {
+            await sock.sendMessage(from, { text: "No se encontró porno chido" });
             return;
         }
 
         // 1. Verificación: ¿Es mayormente contenido vergonzoso (umamusume)?
-        // Contamos cuántos de los 30 tienen al menos uno de los tags vergonzosos
         const countVergonzoso = posts.filter(p => {
             const tags = (p.tags || "").split(" ");
             return listaVergonzosa.some(t => tags.includes(t));
@@ -363,7 +365,6 @@ async function handleR34Command(sock, msg, msgText, from) {
         await sock.sendMessage(from, { text: "Error." });
     }
 }
-
 async function handleGloboCommand(sock, msg, from) {
     const id = msg.key.id;
     const tempDir = path.join(__dirname, "temp");
