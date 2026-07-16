@@ -306,78 +306,66 @@ async function handleR34Command(sock, msg, msgText, from) {
     const listaShadowBan = ["loli", "shota", "child", "toddler", "cub", "gore", "furry", "anthro", "feral"];
     const listaVergonzosa = ["umamusume"];
 
-    // 1. Detectar si el usuario escribió "video" como comando de tipo
-    // Usamos una expresión regular para quitar la palabra "video" sin importar si está al principio, medio o final
     let rawText = msgText.replace(/r34/i, "").trim();
     const esVideo = /\bvideo\b/i.test(rawText);
     
-    // Limpiamos el texto eliminando la palabra "video" para que NO pase a los tags
-    let cleanText = rawText.replace(/\bvideo\b/gi, "").trim();
-
-    // 2. Procesamiento de etiquetas (separa por comas, cambia espacios por guiones)
-    let tagsArray = cleanText
-        .split(',')
-        .map(t => t.trim().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, ""))
-        .filter(t => t.length > 0);
-
-    // Si detectó la bandera "video", añadimos el filtro de tipo al array de etiquetas
-    if (esVideo) {
-        tagsArray.push("type:video");
+    // 1. ShadowBan estricto
+    if (listaShadowBan.some(term => rawText.toLowerCase().includes(term))) {
+        return await sock.sendMessage(from, { text: "No quieres ver eso." });
     }
 
+    let cleanText = rawText.replace(/\bvideo\b/gi, "").trim();
+    let tagsArray = cleanText.split(',').map(t => t.trim().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, "")).filter(t => t.length > 0);
     const query = tagsArray.join(' ');
-    
-    // ... (El resto de tu lógica de filtros de seguridad y búsqueda)
-    
+
+    if (!query) return await sock.sendMessage(from, { text: "Uso: r34 [tags], (video)" });
+
     try {
         const randomPage = Math.floor(Math.random() * 5);
         const url = `https://api.rule34.xxx/index.php?page=dapi&s=post&q=index&json=1&tags=${encodeURIComponent(query)}&limit=50&pid=${randomPage}&user_id=${USER_ID}&api_key=${API_KEY}`;
         
-        const response = await axios.get(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
-        const posts = Array.isArray(response.data) ? response.data : [];
+        const response = await axios.get(url, { headers: { 'User-Agent': 'Mozilla/5.0' }, timeout: 8000 });
+        let posts = Array.isArray(response.data) ? response.data : [];
 
-        if (posts.length === 0) {
-            return await sock.sendMessage(from, { text: "No se encontro porno chido." });
-        }
+        if (posts.length === 0) return await sock.sendMessage(from, { text: "No se encontraron resultados." });
 
-        // 2. Filtrado Estadístico (60% de 50 = 30)
+        // 2. Conteo vergonzoso optimizado (solo cuenta si hay resultados reales)
         const countVergonzoso = posts.filter(p => {
             const tags = (p.tags || "").split(" ");
             return listaVergonzosa.some(t => tags.includes(t));
         }).length;
 
-        if (countVergonzoso >= 30) {
+        // Solo bloquea si hay al menos 30 resultados Y son más del 60% de los encontrados (evita falsos positivos)
+        if (posts.length >= 30 && countVergonzoso > (posts.length * 0.6)) {
             const imgPath = './no.png';
-            if (fs.existsSync(imgPath)) {
-                return await sock.sendMessage(from, { image: fs.readFileSync(imgPath) });
-            }
+            if (fs.existsSync(imgPath)) return await sock.sendMessage(from, { image: fs.readFileSync(imgPath) });
         }
 
-        // 3. Filtrado de Seguridad (ShadowBan)
-        const postsValidos = posts.filter(p => {
+        // 3. Filtrado posterior
+        let postsValidos = posts.filter(p => {
             const tags = (p.tags || "").split(" ");
             return !listaShadowBan.some(t => tags.includes(t));
         });
 
-        if (postsValidos.length === 0) {
-            return await sock.sendMessage(from, { text: "No quieres ver eso." });
+        if (esVideo) {
+            postsValidos = postsValidos.filter(p => p.file_url.match(/\.(mp4|webm)$/i));
         }
 
-        const randomPost = postsValidos[Math.floor(Math.random() * postsValidos.length)];
-        const fileUrl = randomPost.file_url;
+        if (postsValidos.length === 0) return await sock.sendMessage(from, { text: "No se encontró nada tras filtrar." });
 
-        if (fileUrl.match(/\.(mp4|webm)$/)) {
-            await sock.sendMessage(from, { video: { url: fileUrl } });
+        const randomPost = postsValidos[Math.floor(Math.random() * postsValidos.length)];
+        
+        if (randomPost.file_url.match(/\.(mp4|webm)$/i)) {
+            await sock.sendMessage(from, { video: { url: randomPost.file_url } });
         } else {
-            await sock.sendMessage(from, { image: { url: fileUrl } });
+            await sock.sendMessage(from, { image: { url: randomPost.file_url } });
         }
 
     } catch (error) {
         console.error("[R34] Error:", error.message);
-        await sock.sendMessage(from, { text: "No se encontro porno chido. por un error en la búsqueda." });
+        await sock.sendMessage(from, { text: "Error en la búsqueda." });
     }
 }
-
 async function handleGloboCommand(sock, msg, from) {
     const id = msg.key.id;
     const tempDir = path.join(__dirname, "temp");
