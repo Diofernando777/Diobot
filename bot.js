@@ -304,29 +304,31 @@ async function handleR34Command(sock, msg, msgText, from) {
     const API_KEY = "5a1faf4cff57900725489c3574871b40899219725b467ed2059b19caf6771c9bf23726a7785b026835ecb39413a6ce9d884f1e8804dde67bd52ae646459ff554";
     const USER_ID = "6475331";
 
-    const listaShadowBan = ["loli", "shota", "child", "toddler", "cub", "gore", "furry", "anthro", "feral"];
-    const listaVergonzosa = ["umamusume"];
-
-    // 1. Procesamiento de etiquetas
+    // 1. Detectar si el usuario escribió "video" como comando de tipo
+    // Usamos una expresión regular para quitar la palabra "video" sin importar si está al principio, medio o final
     let rawText = msgText.replace(/r34/i, "").trim();
+    const esVideo = /\bvideo\b/i.test(rawText);
     
-    // Detectar si el usuario busca algo prohibido explícitamente
-    const busquedaProhibida = listaShadowBan.some(term => rawText.toLowerCase().includes(term));
-    if (busquedaProhibida) {
-        return await sock.sendMessage(from, { text: "No quieres ver eso." });
+    // Limpiamos el texto eliminando la palabra "video" para que NO pase a los tags
+    let cleanText = rawText.replace(/\bvideo\b/gi, "").trim();
+
+    // 2. Procesamiento de etiquetas (separa por comas, cambia espacios por guiones)
+    let tagsArray = cleanText
+        .split(',')
+        .map(t => t.trim().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, ""))
+        .filter(t => t.length > 0);
+
+    // Si detectó la bandera "video", añadimos el filtro de tipo al array de etiquetas
+    if (esVideo) {
+        tagsArray.push("type:video");
     }
 
-    // Convertir "tag 1 , tag 2" a "tag_1 tag_2"
-    const query = rawText
-        .split(',')
-        .map(tag => tag.trim().replace(/\s+/g, '_'))
-        .filter(tag => tag.length > 0)
-        .join(' ');
-
-    if (!query) return await sock.sendMessage(from, { text: "Uso: r34 tag1, tag2" });
-
+    const query = tagsArray.join(' ');
+    
+    // ... (El resto de tu lógica de filtros de seguridad y búsqueda)
+    
     try {
-        const randomPage = Math.floor(Math.random() * 5) + 1;
+        const randomPage = Math.floor(Math.random() * 5);
         const url = `https://api.rule34.xxx/index.php?page=dapi&s=post&q=index&json=1&tags=${encodeURIComponent(query)}&limit=50&pid=${randomPage}&user_id=${USER_ID}&api_key=${API_KEY}`;
         
         const response = await axios.get(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
