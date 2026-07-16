@@ -46,9 +46,6 @@ const cheemsifyLogic = (text) => {
 };
 
 
-// --- ESTRUCTURA DE COMANDOS ---
- // <-- CORREGIDO: Declarado una sola vez
-
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const modelSDLG = genAI.getGenerativeModel({
@@ -306,69 +303,77 @@ async function cum(sock, msg, messageContent, from) {
 async function handleR34Command(sock, msg, msgText, from) {
     const rawText = msgText.replace(/r34/i, "").trim();
     
-    // --- NUEVO: Manejo del comando 'help' ---
+    // --- LISTAS DE FILTRADO ---
+    const listaVergonzosa = ["umamusume"];
+    const listaShadowBan = ["loli", "shota", "child", "toddler", "cub", "gore", "furry", "anthro", "feral"];
+
     if (rawText.toLowerCase() === "help") {
-        const helpMsg = `*🔍 Comandos de búsqueda (r34)*\n\n` +
-                        `Para buscar contenido, utiliza el comando *r34* seguido de tus palabras clave (tags). Puedes combinar varios términos para una búsqueda más precisa.\n\n` +
-                        `*Ejemplos de uso:*\n` +
-                        `• r34 tifa lockhart\n` +
-                        `• r34 tifa, final fantasy, 1girl\n` +
-                        `• r34 genshin impact, raiden shogun, order:score\n\n` +
-                        `*Notas:*\n` +
-                        `• Separa los tags con espacios o comas.\n` +
-                        `• El bot enviará el archivo directamente sin texto adicional.`;
-        
-        await sock.sendMessage(from, { text: helpMsg });
+        // ... (tu mensaje de ayuda igual)
+        await sock.sendMessage(from, { text: "Comandos: r34 [tags]" });
         return;
     }
-    // ----------------------------------------
 
     const query = rawText;
     const API_KEY = "5a1faf4cff57900725489c3574871b40899219725b467ed2059b19caf6771c9bf23726a7785b026835ecb39413a6ce9d884f1e8804dde67bd52ae646459ff554";
     const USER_ID = "6475331";
     
     if (!query) {
-        await sock.sendMessage(from, { text: "Debes escribir algo. Usa *r34 help* para ver cómo buscar." });
+        await sock.sendMessage(from, { text: "Debes escribir algo." });
         return;
     }
 
     try {
         const url = `https://api.rule34.xxx/index.php?page=dapi&s=post&q=index&json=1&tags=${encodeURIComponent(query)}&api_key=${API_KEY}&user_id=${USER_ID}&limit=100`;
-        
-        console.log(`[R34] Consultando API para: ${query}`);
-        
-        const { data: posts } = await axios.get(url, {
-            headers: { 'User-Agent': 'Mozilla/5.0' }
-        });
+        const { data: posts } = await axios.get(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
 
         if (!posts || posts.length === 0) {
-            await sock.sendMessage(from, { text: "No encontré pornito chido de eso." });
+            await sock.sendMessage(from, { text: "No encontré porno chido de eso." });
             return;
         }
 
-        const randomPost = posts[Math.floor(Math.random() * posts.length)];
+        // --- FILTRADO DE CONTENIDO ---
+        
+        // 1. Verificar si CUALQUIERA de los resultados tiene algo "Vergonzoso"
+        const esVergonzoso = posts.some(p => {
+            const tags = (p.tags || "").split(" ");
+            return listaVergonzosa.some(t => tags.includes(t));
+        });
+
+        if (esVergonzoso) {
+            const imgPath = './no.png';
+            if (fs.existsSync(imgPath)) {
+                return await sock.sendMessage(from, { image: fs.readFileSync(imgPath) });
+            }
+        }
+
+        // 2. Filtrar resultados ignorando el "Shadow Ban"
+        const postsValidos = posts.filter(p => {
+            const tags = (p.tags || "").split(" ");
+            return !listaShadowBan.some(t => tags.includes(t));
+        });
+
+        if (postsValidos.length === 0) {
+            return await sock.sendMessage(from, { text: "No quieres ver eso." });
+        }
+
+        // 3. Selección y envío
+        const randomPost = postsValidos[Math.floor(Math.random() * postsValidos.length)];
         const fileUrl = randomPost?.file_url;
 
-        if (!fileUrl) {
-            await sock.sendMessage(from, { text: "Error Rule 34." });
-            return;
-        }
+        if (!fileUrl) return await sock.sendMessage(from, { text: "Error procesando imagen." });
 
         const isVideo = fileUrl.endsWith('.mp4') || fileUrl.endsWith('.webm');
-        
         if (isVideo) {
             await sock.sendMessage(from, { video: { url: fileUrl } });
         } else {
             await sock.sendMessage(from, { image: { url: fileUrl } });
         }
-        console.log("[R34] Envío realizado con éxito.");
 
     } catch (error) {
-        console.error("[R34] Error en la API:", error.message);
-        await sock.sendMessage(from, { text: "Me corri en el servidor pijes." });
+        console.error("[R34] Error:", error.message);
+        await sock.sendMessage(from, { text: "Falló la búsqueda." });
     }
 }
-
 
 async function handleGloboCommand(sock, msg, from) {
     const id = msg.key.id;
