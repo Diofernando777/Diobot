@@ -303,50 +303,41 @@ async function cum(sock, msg, messageContent, from) {
 async function handleR34Command(sock, msg, msgText, from) {
     const rawText = msgText.replace(/r34/i, "").trim();
     
-    // --- LISTAS DE FILTRADO ---
+    // Listas de filtrado
     const listaVergonzosa = ["umamusume"];
-    const listaShadowBan = ["loli", "shota", "child", "toddler", "cub", "gore", "furry", "anthro", "feral"];
+    const listaShadowBan = ["loli", "shota", "child", "toddler", "cub", "gore", "furry", "anthro", "feral","umamusume"];
 
-    if (rawText.toLowerCase() === "help") {
-        // ... (tu mensaje de ayuda igual)
-        await sock.sendMessage(from, { text: "Comandos: r34 [tags]" });
-        return;
-    }
-
-    const query = rawText;
-    const API_KEY = "5a1faf4cff57900725489c3574871b40899219725b467ed2059b19caf6771c9bf23726a7785b026835ecb39413a6ce9d884f1e8804dde67bd52ae646459ff554";
-    const USER_ID = "6475331";
-    
-    if (!query) {
-        await sock.sendMessage(from, { text: "Debes escribir algo." });
+    if (!rawText) {
+        await sock.sendMessage(from, { text: "Uso: r34 [tags]" });
         return;
     }
 
     try {
-        const url = `https://api.rule34.xxx/index.php?page=dapi&s=post&q=index&json=1&tags=${encodeURIComponent(query)}&api_key=${API_KEY}&user_id=${USER_ID}&limit=100`;
+        // Pedimos 30 resultados
+        const url = `https://api.rule34.xxx/index.php?page=dapi&s=post&q=index&json=1&tags=${encodeURIComponent(rawText)}&limit=30`;
         const { data: posts } = await axios.get(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
 
         if (!posts || posts.length === 0) {
-            await sock.sendMessage(from, { text: "No encontré porno chido de eso." });
+            await sock.sendMessage(from, { text: "No se encontro porno chido" });
             return;
         }
 
-        // --- FILTRADO DE CONTENIDO ---
-        
-        // 1. Verificar si CUALQUIERA de los resultados tiene algo "Vergonzoso"
-        const esVergonzoso = posts.some(p => {
+        // 1. Verificación: ¿Es mayormente contenido vergonzoso (umamusume)?
+        // Contamos cuántos de los 30 tienen al menos uno de los tags vergonzosos
+        const countVergonzoso = posts.filter(p => {
             const tags = (p.tags || "").split(" ");
             return listaVergonzosa.some(t => tags.includes(t));
-        });
+        }).length;
 
-        if (esVergonzoso) {
+        // Si 20 o más de los 30 son vergonzosos, bloqueamos
+        if (countVergonzoso >= 20) {
             const imgPath = './no.png';
             if (fs.existsSync(imgPath)) {
                 return await sock.sendMessage(from, { image: fs.readFileSync(imgPath) });
             }
         }
 
-        // 2. Filtrar resultados ignorando el "Shadow Ban"
+        // 2. Filtrado: Eliminar todo lo que tenga ShadowBan de los que quedan
         const postsValidos = posts.filter(p => {
             const tags = (p.tags || "").split(" ");
             return !listaShadowBan.some(t => tags.includes(t));
@@ -358,9 +349,7 @@ async function handleR34Command(sock, msg, msgText, from) {
 
         // 3. Selección y envío
         const randomPost = postsValidos[Math.floor(Math.random() * postsValidos.length)];
-        const fileUrl = randomPost?.file_url;
-
-        if (!fileUrl) return await sock.sendMessage(from, { text: "Error procesando imagen." });
+        const fileUrl = randomPost.file_url;
 
         const isVideo = fileUrl.endsWith('.mp4') || fileUrl.endsWith('.webm');
         if (isVideo) {
@@ -371,7 +360,7 @@ async function handleR34Command(sock, msg, msgText, from) {
 
     } catch (error) {
         console.error("[R34] Error:", error.message);
-        await sock.sendMessage(from, { text: "Falló la búsqueda." });
+        await sock.sendMessage(from, { text: "Error." });
     }
 }
 
