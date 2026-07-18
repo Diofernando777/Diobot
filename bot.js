@@ -19,6 +19,75 @@ const {
 ffmpeg.setFfmpegPath(ffmpegPath);
 
 const axios = require('axios');
+const ADMINS = ["20499878940793@s.whatsapp.net"];
+const BANS_FILE = './bans.json';
+let listaBaneados = [];
+
+
+function esAdmin(userId) {
+    if (!userId) return false;
+    // Comparamos el número ignorando el sufijo (@s.whatsapp.net o @lid)
+    const numero = userId.split('@')[0];
+    return ADMINS.some(admin => admin.startsWith(numero));
+}
+
+function cargarBaneos() {
+    try {
+        if (fs.existsSync(BANS_FILE)) {
+            const data = fs.readFileSync(BANS_FILE, 'utf8');
+            // Si el archivo está vacío, inicializa como array vacío
+            if (!data.trim()) {
+                listaBaneados = [];
+            } else {
+                listaBaneados = JSON.parse(data);
+            }
+            console.log(`[BANS] Lista cargada. Total: ${listaBaneados.length}`);
+        } else {
+            // Si el archivo no existe, lo crea vacío
+            listaBaneados = [];
+            fs.writeFileSync(BANS_FILE, JSON.stringify([], null, 2));
+        }
+    } catch (e) {
+        console.warn("⚠️ bans.json corrupto, reiniciando lista...");
+        listaBaneados = [];
+        // Crea uno nuevo para limpiar el error
+        fs.writeFileSync(BANS_FILE, JSON.stringify([], null, 2));
+    }
+}
+
+function banUser(userId, senderId) {
+    // La función se autocomprueba
+    if (!esAdmin(senderId)) {
+        console.log(`[SEGURIDAD] Intento de ban no autorizado por: ${senderId}`);
+        return "Que crees que haces papu :v.";
+    }
+
+    if (!listaBaneados.includes(userId)) {
+        listaBaneados.push(userId);
+        fs.writeFileSync(BANS_FILE, JSON.stringify(listaBaneados, null, 2));
+        return `Adios popo xdxdxdxdxd.`;
+    }
+    return "Ese compa ya esta muerto xdxdxxdxdxdxd.";
+}
+
+function unbanUser(userId, senderId) {
+    // 1. Validar permisos
+    if (!esAdmin(senderId)) {
+        return "Que crees que haces papu :v.";
+    }
+
+    // 2. Verificar si el usuario está realmente baneado
+    if (!listaBaneados.includes(userId)) {
+        return "Ese papu esta en papulandia";
+    }
+
+    // 3. Proceder con el desbaneo
+    listaBaneados = listaBaneados.filter(id => id !== userId);
+    fs.writeFileSync(BANS_FILE, JSON.stringify(listaBaneados, null, 2));
+    
+    console.log(`[BANS] Usuario desbaneado: ${userId}`);
+    return `Despierta papu`;
+}
 
 // --- SISTEMA DE PAUSA ---
 const handleCrash = (err, type) => {
@@ -718,7 +787,9 @@ async function handleCaraCommand3(sock, msg, from) {
 }
 
 async function startBot() {
-    // RECOMENDACIÓN: Si el bot sigue cerrando, añade un try-catch aquí para capturar el error de Auth
+    cargarBaneos(); 
+    const processedMessages = new Set();
+    
     try {
         const { state, saveCreds } = await useMultiFileAuthState("auth_info");
         const { version } = await fetchLatestBaileysVersion();
@@ -744,17 +815,41 @@ async function startBot() {
             const msg = messages[0];
             if (!msg.message || msg.key.fromMe) return;
 
-            if (processedMessages.has(msg.key.id)) return;
-            processedMessages.add(msg.key.id);
-            setTimeout(() => processedMessages.delete(msg.key.id), 5000);
-
+            const senderId = msg.key.participant || msg.key.remoteJid;
             const from = msg.key.remoteJid;
             const msgText = msg.message.conversation || msg.message.extendedTextMessage?.text || msg.message.imageMessage?.caption || msg.message.videoMessage?.caption || "";
             const comando = msgText.trim().split(/ +/)[0].toLowerCase();
+
+            // 1. COMPROBACIÓN DE BANEO CON LOG
+            if (listaBaneados.includes(senderId)) {
+                console.log(`[BANEADO] Intento bloqueado: ${senderId} | Comando: ${comando}`);
+                return;
+            }
+
+            if (processedMessages.has(msg.key.id)) return;
+            processedMessages.add(msg.key.id);
+            setTimeout(() => processedMessages.delete(msg.key.id), 5000);
             
             console.log("DEBUG: Comando detectado ->", comando);
 
-            if (comando === "sticker") await ejecutarSticker(sock, msg, from);
+            // 2. Ejecución de comandos
+            // Lógica unificada para extraer ID (mención o respuesta)
+            const getTarget = () => {
+                const contextInfo = msg.message.extendedTextMessage?.contextInfo;
+                return contextInfo?.mentionedJid?.[0] || contextInfo?.participant;
+            };
+
+            if (comando === "ban") {
+                const userToBan = getTarget();
+                if (!userToBan) return await sock.sendMessage(from, { text: "Menciona al papu o responde su mensaje" });
+                await sock.sendMessage(from, { text: banUser(userToBan, senderId) });
+            } 
+            else if (comando === "unban") {
+                const userToUnban = getTarget();
+                if (!userToUnban) return await sock.sendMessage(from, { text: "Menciona al papu o responde su mensaje" });
+                await sock.sendMessage(from, { text: unbanUser(userToUnban, senderId) });
+            }
+            else if (comando === "sticker") await ejecutarSticker(sock, msg, from);
             else if (comando === "nota") await ejecutarNota(sock, msg, msgText, from);
             else if (comando === "peaky") await ejecutarPeaky(sock, msg, msgText, from);
             else if (comando === "dbz") await ejecutarDbz(sock, msg, msgText, from);
@@ -775,4 +870,5 @@ async function startBot() {
         console.error("❌ Error en startBot:", e);
     }
 }
+
 startBot();
