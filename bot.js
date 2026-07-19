@@ -372,70 +372,68 @@ async function cum(sock, msg, messageContent, from) {
 async function handleR34Command(sock, msg, msgText, from) {
     const API_KEY = "5a1faf4cff57900725489c3574871b40899219725b467ed2059b19caf6771c9bf23726a7785b026835ecb39413a6ce9d884f1e8804dde67bd52ae646459ff554";
     const USER_ID = "6475331";
-    const listaShadowBan = ["loli", "shota", "child", "toddler", "furry"];
+    const listaShadowBan = ["loli", "shota", "child", "toddler", "ai_generated", "furry"];
     const listaVergonzosa = ["umamusume"];
 
     let rawText = msgText.replace(/r34/i, "").trim();
     const esVideo = /\bvideo\b/i.test(rawText);
     let cleanText = rawText.replace(/\bvideo\b/gi, "").trim();
 
-    // 1. Procesar tags: separar por coma, quitar espacios extra, y convertir espacios internos a '_'
-    let tagsArray = cleanText.split(',').map(t => {
-        return t.trim().replace(/\s+/g, '_').toLowerCase();
-    }).filter(t => t.length > 0);
+    let tagsArray = cleanText.split(',').map(t => t.trim().replace(/\s+/g, '_').toLowerCase()).filter(t => t.length > 0);
 
-    // 2. Verificar lista vergonzosa ANTES de cualquier búsqueda
     if (tagsArray.some(t => listaVergonzosa.includes(t))) {
+        console.log(`[R34] Bloqueo vergonzoso: ${tagsArray}`);
         const imgPath = './no.png';
-        if (fs.existsSync(imgPath)) {
-            return await sock.sendMessage(from, { image: fs.readFileSync(imgPath) });
-        }
-        return await sock.sendMessage(from, { text: "Contenido no permitido." });
+        if (fs.existsSync(imgPath)) return await sock.sendMessage(from, { image: fs.readFileSync(imgPath) });
+        return await sock.sendMessage(from, { text: "No quieres ver eso." });
     }
 
-    // Preparar query para la API: unimos con '+' (AND lógico en R34)
-    // Agregamos los tags de exclusión con '-'
-    const query = tagsArray.join('+');
-    const exclusionTags = listaShadowBan.map(t => `-${t}`).join(' ');
-    const finalQuery = `${query} ${exclusionTags}`.trim();
+    const baseQuery = tagsArray.join('+');
+    // NOTA: Usamos exclusiones negativas en la API, pero filtraremos manualmente para obtener los logs
+    const finalQuery = `${baseQuery}`.trim(); 
 
-    console.log(`[R34] Procesando tags: ${query} | Exclusiones: ${exclusionTags}`);
-
-    // 3. Búsqueda con reintento (hasta 3 veces)
     let posts = [];
     for (let i = 0; i < 3; i++) {
         try {
-            const randomPage = Math.floor(Math.random() * 50);
-            const url = `https://api.rule34.xxx/index.php?page=dapi&s=post&q=index&json=1&tags=${encodeURIComponent(finalQuery)}&limit=50&pid=${randomPage}&user_id=${USER_ID}&api_key=${API_KEY}`;
+            const page = Math.floor(Math.random() * 20);
+            const url = `https://api.rule34.xxx/index.php?page=dapi&s=post&q=index&json=1&tags=${encodeURIComponent(finalQuery)}&limit=50&pid=${page}&user_id=${USER_ID}&api_key=${API_KEY}`;
             const res = await axios.get(url, { headers: { 'User-Agent': 'Mozilla/5.0' }, timeout: 8000 });
-            
             if (res.data && res.data.length > 0) {
                 posts = res.data;
-                break; // Éxito
+                break;
             }
-        } catch (e) {
-            console.log(`[R34] Intento ${i + 1} fallido.`);
-        }
+        } catch (e) { console.log(`[R34] Intento ${i + 1} fallido.`); }
     }
 
-    if (posts.length === 0) return await sock.sendMessage(from, { text: "No se encontraron resultados tras 3 intentos." });
+    if (posts.length === 0) return await sock.sendMessage(from, { text: "No se encontraron resultados." });
 
-    // 4. Filtrar por tipo (si es video, solo videos; si no, cualquiera)
-    let filtrados = esVideo 
-        ? posts.filter(p => p.file_url && p.file_url.match(/\.(mp4|webm)$/i))
-        : posts;
+    console.log(`[R34] API recibidos: ${posts.length}`);
 
-    if (filtrados.length === 0) return await sock.sendMessage(from, { text: "No hay archivos que coincidan con tu criterio." });
+    // FILTRADO CON LOGS
+    let filtrados = [];
+    let descartados = 0;
 
-    // 5. Seleccionar y enviar
+    posts.forEach(p => {
+        const tagsPost = p.tags ? p.tags.split(" ") : [];
+        const tieneShadowBan = listaShadowBan.some(t => tagsPost.includes(t));
+        const esTipoCorrecto = esVideo ? (p.file_url && p.file_url.match(/\.(mp4|webm)$/i)) : true;
+
+        if (!tieneShadowBan && esTipoCorrecto) {
+            filtrados.push(p);
+        } else {
+            descartados++;
+            if (tieneShadowBan) {
+                console.log(`[R34] Descartado por ShadowBan. Tags: ${p.tags}`);
+            }
+        }
+    });
+
+    console.log(`[R34] Filtrado final: ${filtrados.length} válidos, ${descartados} descartados.`);
+
+    if (filtrados.length === 0) return await sock.sendMessage(from, { text: "No se encontraron resultados." });
+
     const randomPost = filtrados[Math.floor(Math.random() * filtrados.length)];
-    
-    // Validar si el URL es válido
-    if (!randomPost.file_url) return await sock.sendMessage(from, { text: "Error: archivo no disponible." });
-
-    const options = randomPost.file_url.match(/\.(mp4|webm)$/i) 
-        ? { video: { url: randomPost.file_url } } 
-        : { image: { url: randomPost.file_url } };
+    const options = randomPost.file_url.match(/\.(mp4|webm)$/i) ? { video: { url: randomPost.file_url } } : { image: { url: randomPost.file_url } };
     
     await sock.sendMessage(from, options);
 }
