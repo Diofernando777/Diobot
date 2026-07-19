@@ -375,84 +375,58 @@ async function handleR34Command(sock, msg, msgText, from) {
     const listaShadowBan = ["loli", "shota", "child", "toddler", "furry"];
     const listaVergonzosa = ["umamusume"];
 
-    console.log("[R34] Iniciando procesamiento...");
-
     let rawText = msgText.replace(/r34/i, "").trim();
     const esVideo = /\bvideo\b/i.test(rawText);
     let cleanText = rawText.replace(/\bvideo\b/gi, "").trim();
 
-    let tagsArray = cleanText.split(',').map(t => {
-        return t.trim().toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, "");
-    }).filter(t => t.length > 0);
-    
-    let query = tagsArray.join('_');
-    console.log(`[R34] Tags procesados: '${query}' | Modo video: ${esVideo}`);
+    // 1. Procesar tags de búsqueda
+    let tagsArray = cleanText.split(/[\s,]+/).filter(t => t.length > 0);
+    let query = tagsArray.map(t => t.toLowerCase()).join('_');
 
-    if (!query) return await sock.sendMessage(from, { text: "Uso: r34 [tags], (video)" });
-
-    try {
-        // Función para buscar en la API
-        const fetchPosts = async (q) => {
-            const randomPage = Math.floor(Math.random() * 5);
-            const url = `https://api.rule34.xxx/index.php?page=dapi&s=post&q=index&json=1&tags=${encodeURIComponent(q)}&limit=50&pid=${randomPage}&user_id=${USER_ID}&api_key=${API_KEY}`;
-            const response = await axios.get(url, { headers: { 'User-Agent': 'Mozilla/5.0' }, timeout: 8000 });
-            return Array.isArray(response.data) ? response.data : [];
-        };
-
-        let posts = await fetchPosts(query);
-
-        // --- SISTEMA INTELIGENTE DE TAGS (Autocompletado) ---
-        if (posts.length === 0) {
-            console.log(`[R34] Sin resultados directos, buscando sugerencias para: ${query}`);
-            const autoUrl = `https://api.rule34.xxx/autocomplete.php?q=${encodeURIComponent(query.split('_')[0])}`;
-            const autoRes = await axios.get(autoUrl);
-            
-            if (autoRes.data && autoRes.data.length > 0) {
-                // Probamos con la sugerencia más relevante
-                const tagSugerido = autoRes.data[0].value;
-                console.log(`[R34] Reintentando con sugerencia: ${tagSugerido}`);
-                posts = await fetchPosts(tagSugerido);
-            }
-        }
-        // ----------------------------------------------------
-
-        if (posts.length === 0) return await sock.sendMessage(from, { text: "No se encontraron resultados ni sugerencias." });
-
-        console.log(`[R34] Posts recibidos: ${posts.length}`);
-
-        const getTags = (p) => (p.tags && typeof p.tags === 'string' ? p.tags.split(" ") : []);
-
-        // Filtrado ShadowBan
-        let postsValidos = posts.filter(p => !listaShadowBan.some(t => getTags(p).includes(t)));
-
-        // Filtrado Vergonzoso
-        const countVergonzoso = posts.filter(p => listaVergonzosa.some(t => getTags(p).includes(t))).length;
-        if (posts.length >= 30 && countVergonzoso > (posts.length * 0.6)) {
-            const imgPath = './no.png';
-            if (fs.existsSync(imgPath)) return await sock.sendMessage(from, { image: fs.readFileSync(imgPath) });
-        }
-
-        // Filtrado Video
-        if (esVideo) {
-            postsValidos = postsValidos.filter(p => p.file_url && p.file_url.match(/\.(mp4|webm)$/i));
-            if (postsValidos.length === 0) return await sock.sendMessage(from, { text: "No hay videos disponibles para este tag." });
-        }
-
-        if (postsValidos.length === 0) return await sock.sendMessage(from, { text: "No se encontró nada tras filtrar." });
-
-        const randomPost = postsValidos[Math.floor(Math.random() * postsValidos.length)];
-        console.log(`[R34] Enviando archivo: ${randomPost.file_url}`);
-        
-        if (randomPost.file_url.match(/\.(mp4|webm)$/i)) {
-            await sock.sendMessage(from, { video: { url: randomPost.file_url } });
-        } else {
-            await sock.sendMessage(from, { image: { url: randomPost.file_url } });
-        }
-
-    } catch (error) {
-        console.error("[R34] Error:", error.message);
-        await sock.sendMessage(from, { text: "Error procesando la búsqueda." });
+    // 2. Verificar lista vergonzosa ANTES de cualquier búsqueda
+    // Si algún tag buscado está en la lista vergonzosa, bloqueamos
+    if (tagsArray.some(t => listaVergonzosa.includes(t))) {
+        const imgPath = './no.png';
+        if (fs.existsSync(imgPath)) return await sock.sendMessage(from, { image: { url: imgPath } });
+        return await sock.sendMessage(from, { text: "No permitido." });
     }
+
+    // Preparar exclusión (ShadowBan) para la API
+    const exclusionTags = listaShadowBan.map(t => `-${t}`).join(' ');
+    const finalQuery = `${query} ${exclusionTags}`.trim();
+
+    // 3. Búsqueda con reintento (hasta 3 veces)
+    let posts = [];
+    for (let i = 0; i < 3; i++) {
+        try {
+            const randomPage = Math.floor(Math.random() * 50);
+            const url = `https://api.rule34.xxx/index.php?page=dapi&s=post&q=index&json=1&tags=${encodeURIComponent(finalQuery)}&limit=50&pid=${randomPage}&user_id=${USER_ID}&api_key=${API_KEY}`;
+            const res = await axios.get(url, { headers: { 'User-Agent': 'Mozilla/5.0' }, timeout: 8000 });
+            if (res.data && res.data.length > 0) {
+                posts = res.data;
+                break; // Éxito
+            }
+        } catch (e) {
+            console.log(`[R34] Intento ${i + 1} fallido.`);
+        }
+    }
+
+    if (posts.length === 0) return await sock.sendMessage(from, { text: "No se encontraron resultados tras 3 intentos." });
+
+    // 4. Filtrar por tipo (si es video, solo videos; si no, cualquiera)
+    let filtrados = esVideo 
+        ? posts.filter(p => p.file_url.match(/\.(mp4|webm)$/i))
+        : posts;
+
+    if (filtrados.length === 0) return await sock.sendMessage(from, { text: "No hay archivos que coincidan con tu criterio." });
+
+    // 5. Seleccionar y enviar
+    const randomPost = filtrados[Math.floor(Math.random() * filtrados.length)];
+    const options = randomPost.file_url.match(/\.(mp4|webm)$/i) 
+        ? { video: { url: randomPost.file_url } } 
+        : { image: { url: randomPost.file_url } };
+    
+    await sock.sendMessage(from, options);
 }
 
 async function handleGloboCommand(sock, msg, from) {
