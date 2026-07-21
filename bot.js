@@ -754,7 +754,7 @@ async function handleCaraCommand3(sock, msg, from) {
         const response = await axios.post('https://deepfake-face-swap-ai.p.rapidapi.com/swap-face', form, {
             headers: {
                 ...form.getHeaders(),
-                'x-rapidapi-key': 'dba490f3f8mshb4ee4dc9e317814p1c2332jsnb6fa423a7738',
+                'x-rapidapi-key': 'e0bcf449c7msh273bb19f6dc25c2p185ff9jsne0fdb7f6c4dd',
                 'x-rapidapi-host': 'deepfake-face-swap-ai.p.rapidapi.com'
             }
         });
@@ -766,6 +766,114 @@ async function handleCaraCommand3(sock, msg, from) {
         console.error(e);
         // Solo envía mensaje si ocurre un error[cite: 1]
         await sock.sendMessage(from, { text: "Se lo balearon xdxdxxxd." });
+    }
+}
+
+async function handleCaraCommand4(sock, msg, from) {
+    const isQuotedImage = msg.message?.extendedTextMessage?.contextInfo?.quotedMessage?.imageMessage;
+    const isDirectImage = msg.message?.imageMessage;
+
+    if (!isQuotedImage && !isDirectImage) return;
+
+    try {
+        const targetBuffer = await downloadMediaMessage(isDirectImage ? msg : { message: { imageMessage: isQuotedImage } }, 'buffer');
+
+        if (!fs.existsSync('./cara3.png')) {
+            throw new Error("No existe cara2.png");
+        }
+        const sourceBuffer = fs.readFileSync('./cara3.png');
+
+        const form = new FormData();
+        form.append('source_image', sourceBuffer, { filename: 'cara3.png' });
+        form.append('target_image', targetBuffer, { filename: 'target.jpg' });
+
+        const response = await axios.post('https://deepfake-face-swap-ai.p.rapidapi.com/swap-face', form, {
+            headers: {
+                ...form.getHeaders(),
+                'x-rapidapi-key': '688a2c57b2msh47bbf6504ba3c34p128784jsneb0b2787cd4a',
+                'x-rapidapi-host': 'deepfake-face-swap-ai.p.rapidapi.com'
+            }
+        });
+
+        // Envía la imagen directamente sin mensajes de texto
+        await sock.sendMessage(from, { image: { url: response.data.image_url } });
+
+    } catch (e) {
+        console.error(e);
+        // Solo envía mensaje si ocurre un error[cite: 1]
+        await sock.sendMessage(from, { text: "hastamañana deje dormir chao" });
+    }
+}
+
+async function handleCaraCommand5(sock, msg, from) {
+    const isQuotedImage = msg.message?.extendedTextMessage?.contextInfo?.quotedMessage?.imageMessage;
+    const isDirectImage = msg.message?.imageMessage;
+
+    if (!isQuotedImage && !isDirectImage) return;
+
+    try {
+        const targetBuffer = await downloadMediaMessage(isDirectImage ? msg : { message: { imageMessage: isQuotedImage } }, 'buffer');
+
+        if (!fs.existsSync('./cara4.png')) {
+            throw new Error("No existe cara2.png");
+        }
+        const sourceBuffer = fs.readFileSync('./cara4.png');
+
+        const form = new FormData();
+        form.append('source_image', sourceBuffer, { filename: 'cara4.png' });
+        form.append('target_image', targetBuffer, { filename: 'target.jpg' });
+
+        const response = await axios.post('https://deepfake-face-swap-ai.p.rapidapi.com/swap-face', form, {
+            headers: {
+                ...form.getHeaders(),
+                'x-rapidapi-key': 'b553ae262emshe6c02493ba1b5c2p1a5786jsnba9f6123bc0c',
+                'x-rapidapi-host': 'deepfake-face-swap-ai.p.rapidapi.com'
+            }
+        });
+
+        // Envía la imagen directamente sin mensajes de texto
+        await sock.sendMessage(from, { image: { url: response.data.image_url } });
+
+    } catch (e) {
+        console.error(e);
+        // Solo envía mensaje si ocurre un error[cite: 1]
+        await sock.sendMessage(from, { text: "Esto apenas comienza. Fue una batalla, pero ganaremos la guerra" });
+    }
+}
+
+async function handleCaraCommand6(sock, msg, from) {
+    const isQuotedImage = msg.message?.extendedTextMessage?.contextInfo?.quotedMessage?.imageMessage;
+    const isDirectImage = msg.message?.imageMessage;
+
+    if (!isQuotedImage && !isDirectImage) return;
+
+    try {
+        const targetBuffer = await downloadMediaMessage(isDirectImage ? msg : { message: { imageMessage: isQuotedImage } }, 'buffer');
+
+        if (!fs.existsSync('./cara6.png')) {
+            throw new Error("No existe cara2.png");
+        }
+        const sourceBuffer = fs.readFileSync('./cara6.png');
+
+        const form = new FormData();
+        form.append('source_image', sourceBuffer, { filename: 'cara6.png' });
+        form.append('target_image', targetBuffer, { filename: 'target.jpg' });
+
+        const response = await axios.post('https://deepfake-face-swap-ai.p.rapidapi.com/swap-face', form, {
+            headers: {
+                ...form.getHeaders(),
+                'x-rapidapi-key': '81b8430e7amshb3291a3d7e339a2p1b3436jsnebbdff042aea',
+                'x-rapidapi-host': 'deepfake-face-swap-ai.p.rapidapi.com'
+            }
+        });
+
+        // Envía la imagen directamente sin mensajes de texto
+        await sock.sendMessage(from, { image: { url: response.data.image_url } });
+
+    } catch (e) {
+        console.error(e);
+        // Solo envía mensaje si ocurre un error[cite: 1]
+        await sock.sendMessage(from, { text: "Esto apenas comienza. Fue una batalla, pero ganaremos la guerra" });
     }
 }
 
@@ -847,6 +955,9 @@ async function startBot() {
             else if (comando === "saxoulealo") await handleCaraCommand(sock, msg, from);
             else if (comando === "andreyficalo") await handleCaraCommand2(sock, msg, from);
             else if (comando === "kirkificalo") await handleCaraCommand3(sock, msg, from);
+            else if (comando === "edimficalo") await handleCaraCommand4(sock, msg, from);
+            else if (comando === "polopolealo") await handleCaraCommand5(sock, msg, from);
+            else if (comando === "cavifaxealo") await handleCaraCommand6(sock, msg, from);
             else await ejecutarIA(sock, msg, msgText, from);
         });
     } catch (e) {
