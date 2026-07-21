@@ -877,6 +877,42 @@ async function handleCaraCommand6(sock, msg, from) {
     }
 }
 
+async function handleCaraCommand7(sock, msg, from) {
+    const isQuotedImage = msg.message?.extendedTextMessage?.contextInfo?.quotedMessage?.imageMessage;
+    const isDirectImage = msg.message?.imageMessage;
+
+    if (!isQuotedImage && !isDirectImage) return;
+
+    try {
+        const targetBuffer = await downloadMediaMessage(isDirectImage ? msg : { message: { imageMessage: isQuotedImage } }, 'buffer');
+
+        if (!fs.existsSync('./cara7.png')) {
+            throw new Error("No existe cara2.png");
+        }
+        const sourceBuffer = fs.readFileSync('./cara7.png');
+
+        const form = new FormData();
+        form.append('source_image', sourceBuffer, { filename: 'cara7.png' });
+        form.append('target_image', targetBuffer, { filename: 'target.jpg' });
+
+        const response = await axios.post('https://deepfake-face-swap-ai.p.rapidapi.com/swap-face', form, {
+            headers: {
+                ...form.getHeaders(),
+                'x-rapidapi-key': '385b02c520mshcbcb08b15b1e47dp14be5fjsn65ca328cc8ba',
+                'x-rapidapi-host': 'deepfake-face-swap-ai.p.rapidapi.com'
+            }
+        });
+
+        // Envía la imagen directamente sin mensajes de texto
+        await sock.sendMessage(from, { image: { url: response.data.image_url } });
+
+    } catch (e) {
+        console.error(e);
+        // Solo envía mensaje si ocurre un error[cite: 1]
+        await sock.sendMessage(from, { text: "Estoy en una situación: si hablo la embarro, si no hablo también la embarro... y cuando voy a cagar, no cago" });
+    }
+}
+
 async function startBot() {
     cargarBaneos(); 
     const processedMessages = new Set();
@@ -958,6 +994,7 @@ async function startBot() {
             else if (comando === "edimficalo") await handleCaraCommand4(sock, msg, from);
             else if (comando === "polopolealo") await handleCaraCommand5(sock, msg, from);
             else if (comando === "cavifaxealo") await handleCaraCommand6(sock, msg, from);
+            else if (comando === "altafullealo") await handleCaraCommand7(sock, msg, from);
             else await ejecutarIA(sock, msg, msgText, from);
         });
     } catch (e) {
