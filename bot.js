@@ -873,7 +873,7 @@ async function handleCaraCommand6(sock, msg, from) {
     } catch (e) {
         console.error(e);
         // Solo envía mensaje si ocurre un error[cite: 1]
-        await sock.sendMessage(from, { text: "Tremendo fracasado cffffffffffffffffffffffffffffff" });
+        await sock.sendMessage(from, { text: "Tremendo fracasado cfffffffffffffffffffffffffffff" });
     }
 }
 
