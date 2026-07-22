@@ -42,6 +42,7 @@ const { ejecutarPeaky } = require('./commands/peaky');
 const { ejecutarDbz } = require('./commands/dbz');
 const { ejecutarHomero } = require('./commands/homero');
 const { esAdmin, cargarBaneos, banUser, unbanUser, getListaBaneados } = require('./commands/bans');
+const { ejecutarWojak } = require('./commands/wojak');
 
 const { 
     handleCaraCommand, 
@@ -203,6 +204,9 @@ async function startBot() {
                 case "warrensificalo":
                     await handleCaraCommand9(sock, msg, from);
                     break;
+                case "wojak":
+                        await ejecutarWojak(sock, msg, msgText, from);
+                        break;
                 default:
                     await ejecutarIA(sock, msg, msgText, from);
                     break;
