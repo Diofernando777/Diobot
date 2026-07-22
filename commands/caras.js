@@ -15,7 +15,7 @@ const carasConfig = {
     6: { file: 'cara6.png', key: '81b8430e7amshb3291a3d7e339a2p1b3436jsnebbdff042aea', error: "Tremendo fracasado cfffffffffffffffffffffffffffff" },
     7: { file: 'cara7.png', key: '385b02c520mshcbcb08b15b1e47dp14be5fjsn65ca328cc8ba', error: "Estoy en una situación: si hablo la embarro, si no hablo también la embarro... y cuando voy a cagar, no cago" },
     8: { file: 'cara8.png', key: 'ebb9ad3797msh2abcff81c13d704p1e7e09jsndb92f682e085', error: "Fallo" },
-    9: { file: 'cara9.png', key: '385b02c520mshcbcb08b15b1e47dp14be5fjsn65ca328cc8ba', error: "Fallo" }
+    9: { file: 'cara9.png', key: 'ebb9ad3797msh2abcff81c13d704p1e7e09jsndb92f682e085', error: "Fallo" }
 };
 
 async function handleCaraMaster(sock, msg, from, numeroCara) {
