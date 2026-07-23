@@ -205,7 +205,7 @@ async function startBot() {
                 case "gushificacion":
                     await handleCaraCommand8(sock, msg, from);
                     break;
-                case "warrensificalo":
+                case "downficalo":
                     await handleCaraCommand9(sock, msg, from);
                     break;
                 default:
