@@ -28,12 +28,6 @@ const apisFaceSwap = [
         key: "b309444edbmsh4198148652de4a4p1457d0jsn7866ca1d316b"
     },
     {
-        name: "API 5",
-        endpoint: "https://deepfake-face-swap-ai.p.rapidapi.com/swap-face",
-        host: "deepfake-face-swap-ai.p.rapidapi.com",
-        key: "af88a41312msh3dd9909c2911673p1f6d32jsnb01c78d46e26"
-    },
-    {
         name: "API 6",
         endpoint: "https://deepfake-face-swap-ai.p.rapidapi.com/swap-face",
         host: "deepfake-face-swap-ai.p.rapidapi.com",
