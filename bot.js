@@ -11,6 +11,7 @@ const ffmpegPath = require('ffmpeg-static');
 const puppeteer = require('puppeteer');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
+
 const { 
     default: makeWASocket, 
     useMultiFileAuthState, 
@@ -42,6 +43,7 @@ const { ejecutarPeaky } = require('./commands/peaky');
 const { ejecutarDbz } = require('./commands/dbz');
 const { ejecutarHomero } = require('./commands/homero');
 const { esAdmin, cargarBaneos, banUser, unbanUser, getListaBaneados } = require('./commands/bans');
+const { ejecutarEdit } = require('./commands/edit');
 
 const { 
     handleCaraCommand, 
@@ -140,6 +142,9 @@ async function startBot() {
                     await sock.sendMessage(from, { text: unbanUser(userToUnban, senderId) });
                     break;
                 }
+                case "edit":
+                    await ejecutarEdit(sock, msg, msgText, from);
+                    break;
                 case "sticker":
                     await ejecutarSticker(sock, msg, from);
                     break;
