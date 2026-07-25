@@ -169,7 +169,7 @@ async function startBot() {
                 case "bana":
                     await ejecutarBana(sock, msg, msgText, from);
                     break;
-                case "-r34":
+                case "r34":
                     await handleR34Command(sock, msg, msgText, from);
                     break;
                 case "globo":
