@@ -7,10 +7,8 @@
     "start": "node bot.js"
   },
   "dependencies": {
-    "@distube/ytdl-core": "^4.16.12",
     "@google/genai": "^2.13.0",
     "@google/generative-ai": "^0.24.1",
-    "@huggingface/inference": "^4.13.23",
     "@whiskeysockets/baileys": "^6.7.23",
     "axios": "^1.18.1",
     "dotenv": "^17.4.2",
