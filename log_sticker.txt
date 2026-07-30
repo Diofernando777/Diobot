@@ -1,0 +1,44 @@
+[2026-07-30T20:07:41.786Z] === NUEVA EJECUCIÓN DE STICKER ===
+[2026-07-30T20:07:41.789Z] Mensaje recibido: {
+  "extendedTextMessage": {
+    "text": "Sticker",
+    "previewType": "NONE",
+    "contextInfo": {
+      "stanzaId": "AC0B563E07BF688B3C25563BB1C6DBCC",
+      "participant": "212309662249144@lid",
+      "quotedMessage": {
+        "imageMessage": {
+          "url": "https://mmg.whatsapp.net/v/t62.7118-24/619335943_1389351809736952_7973675296204335686_n.enc?ccb=11-4&oh=01_Q5Aa5AEL71FqjehEOMKxq-RaP-kJ2GNl7Kl59Rot-YOO_9CEpQ&oe=6A9330F5&_nc_sid=5e03e0&mms3=true",
+          "mimetype": "image/jpeg",
+          "fileSha256": "4inX7QUlCoFSV59GcrYWK6aLut4K8bAuTetfl06utro=",
+          "fileLength": "23155",
+          "height": 718,
+          "width": 485,
+          "mediaKey": "kc2Fe3ih3VO5UdJoS/bCNB2/C10zuW8+rfKRMnjIFb8=",
+          "fileEncSha256": "aqwzFhDJI2MrARrnqfn8MSnoHy/mtC6Q48toC8MZLsQ=",
+          "directPath": "/v/t62.7118-24/619335943_1389351809736952_7973675296204335686_n.enc?ccb=11-4&oh=01_Q5Aa5AEL71FqjehEOMKxq-RaP-kJ2GNl7Kl59Rot-YOO_9CEpQ&oe=6A9330F5&_nc_sid=5e03e0",
+          "mediaKeyTimestamp": "1785441669",
+          "jpegThumbnail": "/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEABsbGxscGx4hIR4qLSgtKj04MzM4PV1CR0JHQl2NWGdYWGdYjX2Xe3N7l33gsJycsOD/2c7Z//////////////8BGxsbGxwbHiEhHiotKC0qPTgzMzg9XUJHQkdCXY1YZ1hYZ1iNfZd7c3uXfeCwnJyw4P/Zztn////////////////CABEIAEgAMAMBIgACEQEDEQH/xAAwAAACAwEBAAAAAAAAAAAAAAAEBQACBgEDAQEBAQEBAAAAAAAAAAAAAAADAgEEAP/aAAwDAQACEAMQAAAAKQPQTZRUwTp56dcKsrWhlUGl441LpqAeJCOVLzmhkZoEKQw4BXfaj1Wlg3c88RXHnS9FNwXJzv6DSZsvJUf/xAAjEAACAgIDAAICAwAAAAAAAAABAgADBBESITEQQQUzEyJR/9oACAEBAAE/AHdAD3LKLS7cRCGU6Ydw/Jor9igcmKkzICg+9zYleHSa9se5cgSwqIDyHcuxuX6zqNgqy7ZtNDjV0Dk/ZiWBk2qiXFLX6XUTyX3LUvIy/Lssfe9CPkO4AMoRbKlImYRWwAEo3w7meLWt8OoUYeqYutjl5MK8LZw+jMpq2sbcXXcZAfRL61/yWLxdhKyVcERyWYkz+bgQNbgtQ/cuAI2DMn9zRPYZjMbFBjBZYNJuZB3aWA6MT7+Px7f0YQ2AMN/cs7rMxUrtp0yg6MbColeFSpHU/8QAHBEBAAMAAgMAAAAAAAAAAAAAAQACERASMTJR/9oACAECAQE/AOySgNRYXrbQmbEvgDOtjcg5BXjxKOvF/ZhNfs//xAAbEQADAQADAQAAAAAAAAAAAAAAAQIRAxASMv/aAAgBAwEBPwBRFFrKaQ4cpNiryRca/Uk8nHqdrUPKH1iaLWdR8oZiP//Z",
+          "contextInfo": {
+            "pairedMediaType": "NOT_PAIRED_MEDIA"
+          },
+          "scansSidecar": "ENE4VCO/2megIhGQgc+arlmd3XM=",
+          "scanLengths": [
+            4403,
+            18752
+          ]
+        }
+      }
+    },
+    "inviteLinkGroupTypeV2": "DEFAULT"
+  },
+  "messageContextInfo": {
+    "messageSecret": "qRKS5wyaKOzAQvHZIKIoiW9e2PULFOCqGJPOpDn9w8I="
+  }
+}
+[2026-07-30T20:07:41.792Z] Contenedor detectado: Normal
+[2026-07-30T20:07:41.794Z] Tipo de contenido interno: imageMessage
+[2026-07-30T20:07:41.799Z] Iniciando descarga del multimedia con Baileys...
+[2026-07-30T20:07:42.158Z] Multimedia descargado con éxito. Tamaño: 23155 bytes
+[2026-07-30T20:07:42.160Z] Procesando imagen con Sharp...
+[2026-07-30T20:07:42.244Z] Imagen convertida correctamente. Enviando...

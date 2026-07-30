@@ -82,8 +82,9 @@ async function startBot() {
             auth: state, 
             printQRInTerminal: false, 
             browser: ["TapIAs Bot", "Chrome", "120.0.0"],
-            syncFullHistory: false
-        });
+            syncFullHistory: false,
+            logger: require("pino")({ level: "silent" })
+        }); 
 
         sock.ev.on("connection.update", (update) => {
             const { connection, lastDisconnect, qr } = update;
