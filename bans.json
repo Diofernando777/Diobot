@@ -1,3 +1,14 @@
 [
-  "145771525611759@lid"
+  {
+    "_id": "6a6aab8c3911aa39769c22f9",
+    "userId": "145771525611759@lid",
+    "admin": false,
+    "baneado": true
+  },
+  {
+    "_id": "6a6aaba53911aa39769c22fa",
+    "userId": "98020448272462@lid",
+    "admin": false,
+    "baneado": true
+  }
 ]

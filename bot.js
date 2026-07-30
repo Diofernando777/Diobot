@@ -44,7 +44,7 @@ const { ejecutarDbz } = require('./commands/dbz');
 const { ejecutarHomero } = require('./commands/homero');
 const { esAdmin, cargarBaneos, banUser, unbanUser, getListaBaneados } = require('./commands/bans');
 const { ejecutarEdit } = require('./commands/edit');
-
+const { conectarDB } = require('./database');
 
 const { 
     handleCaraCommand, 
@@ -68,7 +68,10 @@ process.on('uncaughtException', (err) => handleCrash(err, 'Uncaught Exception'))
 process.on('unhandledRejection', (reason) => handleCrash(reason, 'Unhandled Rejection'));
 
 async function startBot() {
-    cargarBaneos(); 
+    // Conectar a MongoDB Atlas al iniciar
+    await conectarDB();
+    await cargarBaneos(); 
+
     const processedMessages = new Set();
     
     try {
@@ -101,10 +104,14 @@ async function startBot() {
             const msgText = msg.message.conversation || msg.message.extendedTextMessage?.text || msg.message.imageMessage?.caption || msg.message.videoMessage?.caption || "";
             const comando = msgText.trim().split(/ +/)[0].toLowerCase();
 
-            // 1. COMPROBACIÓN DE BANEO BLINDADA
-            const listaBaneadosActual = getListaBaneados();
+            // 1. COMPROBACIÓN DE BANEO BLINDADA (Con await integrado)
+            const listaBaneadosActual = await getListaBaneados();
             const numeroSender = senderId.split('@')[0];
-            const estaBaneado = listaBaneadosActual.some(bannedId => bannedId.split('@')[0] === numeroSender);
+            
+            const estaBaneado = listaBaneadosActual.some(bannedId => {
+                const idBandid = typeof bannedId === 'string' ? bannedId : (bannedId.userId || '');
+                return idBandid.split('@')[0] === numeroSender;
+            });
 
             if (estaBaneado) {
                 console.log(`[BANEADO] Intento bloqueado: ${senderId} | Comando: ${comando}`);
@@ -118,7 +125,6 @@ async function startBot() {
             console.log("DEBUG: Comando detectado ->", comando);
 
             // 2. Ejecución de comandos
-            // Lógica unificada para extraer ID (mención o respuesta)
             const getTarget = () => {
                 const contextInfo = msg.message.extendedTextMessage?.contextInfo;
                 return contextInfo?.mentionedJid?.[0] || contextInfo?.participant;
@@ -131,7 +137,8 @@ async function startBot() {
                         await sock.sendMessage(from, { text: "Menciona al papu o responde su mensaje" });
                         break;
                     }
-                    await sock.sendMessage(from, { text: banUser(userToBan, senderId) });
+                    const resultadoBan = await banUser(userToBan, senderId);
+                    await sock.sendMessage(from, { text: resultadoBan });
                     break;
                 }
                 case "unban": {
@@ -140,7 +147,8 @@ async function startBot() {
                         await sock.sendMessage(from, { text: "Menciona al papu o responde su mensaje" });
                         break;
                     }
-                    await sock.sendMessage(from, { text: unbanUser(userToUnban, senderId) });
+                    const resultadoUnban = await unbanUser(userToUnban, senderId);
+                    await sock.sendMessage(from, { text: resultadoUnban });
                     break;
                 }
                 case "edit":

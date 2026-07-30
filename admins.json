@@ -1,0 +1,32 @@
+[
+  {
+    "_id": "6a6aac0a3911aa39769c22fc",
+    "userId": "20499878940793@s.whatsapp.net",
+    "admin": true,
+    "baneado": false
+  },
+  {
+    "_id": "6a6aac0a3911aa39769c22fd",
+    "userId": "234836212109486@lid",
+    "admin": true,
+    "baneado": false
+  },
+  {
+    "_id": "6a6aac0a3911aa39769c22fe",
+    "userId": "61856404246529@lid",
+    "admin": true,
+    "baneado": false
+  },
+  {
+    "_id": "6a6aac0a3911aa39769c22ff",
+    "userId": "158170878111744@lid",
+    "admin": true,
+    "baneado": false
+  },
+  {
+    "_id": "6a6aac0a3911aa39769c2300",
+    "userId": "1451900322016@lid",
+    "admin": true,
+    "baneado": false
+  }
+]
