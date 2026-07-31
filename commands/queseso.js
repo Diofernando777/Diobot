@@ -38,13 +38,14 @@ async function ejecutarQueseso(sock, msg, from) {
 
         await new Promise((res, rej) => {
             ffmpeg()
-                .input(pathVidR)
-                .input(pathImgI)
-                .input(pathGifG)
+                .input(pathVidR) // [0] r: que.mp4 (video 1x1 para el audio)
+                .input(pathImgI) // [1] i: imagen del usuario (360x640)
+                .input(pathGifG) // [2] g: qeseso.gif transparente (360x640)
                 .complexFilter([
                     "[0:v]scale=1:1[vid]",
                     "[1:v]scale=360:640[img]",
                     "[2:v]scale=360:640[gif]",
+                    // Orden de capas: Imagen de fondo (360x640), encima el video (1x1) y arriba el GIF (360x640)
                     "[img][vid]overlay=0:0[tmp]",
                     "[tmp][gif]overlay=0:0[out]"
                 ])
