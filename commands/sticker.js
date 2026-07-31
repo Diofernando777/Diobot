@@ -5,19 +5,11 @@ const ffmpeg = require('fluent-ffmpeg');
 const { downloadMediaMessage } = require('@whiskeysockets/baileys');
 
 function escribirLog(texto) {
-    const logPath = path.join(__dirname, '../log_sticker.txt');
-    const timestamp = new Date().toISOString();
-    const linea = `[${timestamp}] ${texto}\n`;
-    fs.appendFileSync(logPath, linea);
     console.log(texto);
 }
 
 async function ejecutarSticker(sock, msg, from) {
-    const logPath = path.join(__dirname, '../log_sticker.txt');
-    if (fs.existsSync(logPath)) fs.unlinkSync(logPath);
-
     escribirLog("=== NUEVA EJECUCIÓN DE STICKER ===");
-    escribirLog("Mensaje recibido: " + JSON.stringify(msg.message, null, 2));
 
     const quoted = msg.message?.extendedTextMessage?.contextInfo?.quotedMessage;
     if (!quoted) {
@@ -72,13 +64,13 @@ async function ejecutarSticker(sock, msg, from) {
 
         if (isImage) {
             escribirLog("Procesando imagen con Sharp...");
-            const sticker = await sharp(buffer)
+            const stickerBuffer = await sharp(buffer)
                 .resize(512, 512, { fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 0 } })
                 .webp({ quality: 80 })
                 .toBuffer();
             
             escribirLog("Imagen convertida correctamente. Enviando...");
-            await sock.sendMessage(from, { sticker });
+            await sock.sendMessage(from, { sticker: stickerBuffer });
 
         } else if (isVideoOrGif) {
             const id = msg.key.id;
@@ -97,8 +89,8 @@ async function ejecutarSticker(sock, msg, from) {
                     ])
                     .outputOptions([
                         "-vcodec libwebp",
-                        "-pix_fmt yuv420p",
-                        "-vf scale=512:512:force_original_aspect_ratio=decrease,pad=512:512:(ow-iw)/2:(oh-ih)/2:color=white@0.0,format=rgba,fps=12",
+                        "-pix_fmt yuva420p",
+                        "-vf scale=512:512:force_original_aspect_ratio=decrease,pad=512:512:(ow-iw)/2:(oh-ih)/2:color=black@0.0,format=yuva420p,fps=12",
                         "-loop 0",
                         "-an",
                         "-vsync 0",
@@ -137,7 +129,7 @@ async function ejecutarSticker(sock, msg, from) {
         }
     } catch (e) {
         escribirLog(`❌ [ERROR CRÍTICO]: ${e.stack || e.message}`);
-        await sock.sendMessage(from, { text: "Falló la conversión (revisa el log_sticker.txt generado)." });
+        await sock.sendMessage(from, { text: "Falló la conversión del sticker, papu." });
     }
 }
 

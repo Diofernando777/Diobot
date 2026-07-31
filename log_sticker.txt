@@ -1,97 +1,85 @@
-[2026-07-31T15:13:36.915Z] === NUEVA EJECUCIÓN DE STICKER ===
-[2026-07-31T15:13:36.928Z] Mensaje recibido: {
+[2026-07-31T18:11:20.980Z] === NUEVA EJECUCIÓN DE STICKER ===
+[2026-07-31T18:11:20.982Z] Mensaje recibido: {
   "extendedTextMessage": {
     "text": "sticker",
     "previewType": "NONE",
     "contextInfo": {
-      "stanzaId": "3EB0C31E23FD1AA7DE0F67",
-      "participant": "35030374055978@lid",
+      "stanzaId": "ACDDC22774BACE4D2109F40DDFA8C919",
+      "participant": "573227476120@s.whatsapp.net",
       "quotedMessage": {
         "videoMessage": {
-          "url": "https://mmg.whatsapp.net/v/t62.7161-24/595977564_1865210654642170_8427040967889770509_n.enc?ccb=11-4&oh=01_Q5Aa5AG2l2iKd4rGxJMndejmcu-W47jyPyHpFCXqBh9vSNg1GQ&oe=6A9447AB&_nc_sid=5e03e0&mms3=true",
+          "url": "https://mmg.whatsapp.net/v/t62.7161-24/540573468_1069538428929784_8173699674199758051_n.enc?ccb=11-4&oh=01_Q5Aa5AGvSz0GNHSfKBuSW5X56OV2hEsX5_-ffJN4cd-fcarllQ&oe=6A941663&_nc_sid=5e03e0",
           "mimetype": "video/mp4",
-          "fileSha256": "ONMZx5mLUTqlL95Jq2wosfvi+0+qizZvKdznQMQ5OS8=",
-          "fileLength": "367142",
-          "seconds": 5,
-          "mediaKey": "wuf1peInqFSeaAIJxAyR9VJdG2M7mMKMW6Nh9qCHMCs=",
-          "height": 500,
-          "width": 500,
-          "fileEncSha256": "FI+7WWjRJNjbgz43zh/cSrn7cHuWfKSTU8FHdrhfzhg=",
-          "directPath": "/v/t62.7161-24/595977564_1865210654642170_8427040967889770509_n.enc?ccb=11-4&oh=01_Q5Aa5AG2l2iKd4rGxJMndejmcu-W47jyPyHpFCXqBh9vSNg1GQ&oe=6A9447AB&_nc_sid=5e03e0",
-          "mediaKeyTimestamp": "1785510801",
-          "jpegThumbnail": "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",
+          "fileSha256": "i7gzTp8K59ZbcqmL/na22JwGUNW2FMcIYjbPvKOfQp4=",
+          "fileLength": "714668",
+          "seconds": 4,
+          "mediaKey": "hwQTSDgXBxXrsWUr3+elj/I2ywn0e1y5DWVcaRqqamI=",
+          "height": 640,
+          "width": 360,
+          "fileEncSha256": "vQDrx1ibKhXuggw2ZHabg4b/BUgkExPNjojGKvCcDSE=",
+          "directPath": "/v/t62.7161-24/540573468_1069538428929784_8173699674199758051_n.enc?ccb=11-4&oh=01_Q5Aa5AGvSz0GNHSfKBuSW5X56OV2hEsX5_-ffJN4cd-fcarllQ&oe=6A941663&_nc_sid=5e03e0",
+          "mediaKeyTimestamp": "1785510829",
+          "jpegThumbnail": "/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEABsbGxscGx4hIR4qLSgtKj04MzM4PV1CR0JHQl2NWGdYWGdYjX2Xe3N7l33gsJycsOD/2c7Z//////////////8BGxsbGxwbHiEhHiotKC0qPTgzMzg9XUJHQkdCXY1YZ1hYZ1iNfZd7c3uXfeCwnJyw4P/Zztn////////////////CABEIAEgAMwMBIgACEQEDEQH/xAAuAAADAQEAAAAAAAAAAAAAAAAAAQMEAgEAAwEBAAAAAAAAAAAAAAAAAAECAwT/2gAMAwEAAhADEAAAAMFOV04ty0I4F0zOAnfnptWvjvMZOgqoDFVayqTpnVEQkqGmUYOjkxa+eHJm1ZnQgGdchNJg0AAgGf/EACoQAAICAAQDCAMBAAAAAAAAAAECAAMRITEyBBJSEBMzQUJRcYEgIiNh/9oACAEBAAE/AEGLxyiHAoJz1dAnPV0CB00CywZaQyveJfu+olbvmBFUqDzCdXzLdFhle8S/f9TgVDOZxYAcgYTq+Zb6YZXvEuUlpVWR++OcYs55njKU5wZb6exPEEfdEOFIXDUxiDgAfMTix/Zs/aW+mGJ4glhAMFg7l3UZAYCE1111Fxmc47c5dvcyzRYdZX4gl2+IQeDsH+ziG5qaDMTkI+0Q6wEg46Qkk5ymxAtqN5id4poCE5g5dmJOp7C4PtCyzHHQfj//xAAdEQACAgIDAQAAAAAAAAAAAAABEQBBAxACEjAx/9oACAECAQE/AKnYNPdQY2XUOqnHIQCFB88VP//EABwRAAICAwEBAAAAAAAAAAAAAAECABADQUIgMf/aAAgBAwEBPwDqFRfUbKoJG4NV1GxhnDQ/a3R9f//Z",
           "contextInfo": {
             "pairedMediaType": "NOT_PAIRED_MEDIA"
-          }
+          },
+          "streamingSidecar": "CxLzgZ5H0k88MH0Aq+OnmnBCd3+ckc89TGsACuFA68jhdwv8KcNBLXt3ERzOq847T+wDfbvqhuyU20z7XW4gmdCMkvuGCRP4w1hZf4eI7iHKKIh3Yzve80bGC4ndYngde7jAQlygS1X+eIji+Yw="
         }
       }
     },
     "inviteLinkGroupTypeV2": "DEFAULT"
   },
   "messageContextInfo": {
-    "messageSecret": "s+NdxssAxOfRhVBRw712BLYH0sKFFvWYUkWSELHReOk="
+    "messageSecret": "RhurcnxmkD3v6uCGhEuydExq7Ra3rnnPvL1SuQGVHq0="
   }
 }
-[2026-07-31T15:13:36.932Z] Contenedor detectado: Normal
-[2026-07-31T15:13:36.934Z] Tipo de contenido interno: videoMessage
-[2026-07-31T15:13:36.936Z] Iniciando descarga del multimedia con Baileys...
-[2026-07-31T15:13:37.442Z] Multimedia descargado con éxito. Tamaño: 367142 bytes
-[2026-07-31T15:13:37.446Z] Archivo temporal guardado en: C:\Users\juane\Desktop\bot\input_AC576EF30397F4479C2347B65C203EEA.mp4
-[2026-07-31T15:13:37.447Z] Iniciando proceso con FFmpeg...
-[2026-07-31T15:13:37.465Z] [FFmpeg Comando]: ffmpeg -ss 0 -t 5 -i C:\Users\juane\Desktop\bot\input_AC576EF30397F4479C2347B65C203EEA.mp4 -y -vcodec libwebp -pix_fmt yuv420p -vf scale=512:512:force_original_aspect_ratio=decrease,pad=512:512:(ow-iw)/2:(oh-ih)/2:color=white@0.0,format=rgba,fps=12 -loop 0 -an -vsync 0 -preset default -compression_level 6 -q:v 28 -f webp C:\Users\juane\Desktop\bot\output_AC576EF30397F4479C2347B65C203EEA.webp
-[2026-07-31T15:13:37.538Z] [FFmpeg Log]: ffmpeg version 6.1.1-essentials_build-www.gyan.dev Copyright (c) 2000-2023 the FFmpeg developers
-[2026-07-31T15:13:37.540Z] [FFmpeg Log]:   built with gcc 12.2.0 (Rev10, Built by MSYS2 project)
-[2026-07-31T15:13:37.542Z] [FFmpeg Log]:   configuration: --enable-gpl --enable-version3 --enable-static --pkg-config=pkgconf --disable-w32threads --disable-autodetect --enable-fontconfig --enable-iconv --enable-gnutls --enable-libxml2 --enable-gmp --enable-bzlib --enable-lzma --enable-zlib --enable-libsrt --enable-libssh --enable-libzmq --enable-avisynth --enable-sdl2 --enable-libwebp --enable-libx264 --enable-libx265 --enable-libxvid --enable-libaom --enable-libopenjpeg --enable-libvpx --enable-mediafoundation --enable-libass --enable-libfreetype --enable-libfribidi --enable-libharfbuzz --enable-libvidstab --enable-libvmaf --enable-libzimg --enable-amf --enable-cuda-llvm --enable-cuvid --enable-ffnvcodec --enable-nvdec --enable-nvenc --enable-dxva2 --enable-d3d11va --enable-libvpl --enable-libgme --enable-libopenmpt --enable-libopencore-amrwb --enable-libmp3lame --enable-libtheora --enable-libvo-amrwbenc --enable-libgsm --enable-libopencore-amrnb --enable-libopus --enable-libspeex --enable-libvorbis --enable-librubberband
-[2026-07-31T15:13:37.544Z] [FFmpeg Log]:   libavutil      58. 29.100 / 58. 29.100
-[2026-07-31T15:13:37.546Z] [FFmpeg Log]:   libavcodec     60. 31.102 / 60. 31.102
-[2026-07-31T15:13:37.547Z] [FFmpeg Log]:   libavformat    60. 16.100 / 60. 16.100
-[2026-07-31T15:13:37.549Z] [FFmpeg Log]:   libavdevice    60.  3.100 / 60.  3.100
-[2026-07-31T15:13:37.550Z] [FFmpeg Log]:   libavfilter     9. 12.100 /  9. 12.100
-[2026-07-31T15:13:37.551Z] [FFmpeg Log]:   libswscale      7.  5.100 /  7.  5.100
-[2026-07-31T15:13:37.553Z] [FFmpeg Log]:   libswresample   4. 12.100 /  4. 12.100
-[2026-07-31T15:13:37.554Z] [FFmpeg Log]:   libpostproc    57.  3.100 / 57.  3.100
-[2026-07-31T15:13:37.555Z] [FFmpeg Log]: -vsync is deprecated. Use -fps_mode
-[2026-07-31T15:13:37.556Z] [FFmpeg Log]: Passing a number to -vsync is deprecated, use a string argument as described in the manual.
-[2026-07-31T15:13:37.593Z] [FFmpeg Log]: Input #0, mov,mp4,m4a,3gp,3g2,mj2, from 'C:\Users\juane\Desktop\bot\input_AC576EF30397F4479C2347B65C203EEA.mp4':
-[2026-07-31T15:13:37.595Z] [FFmpeg Log]:   Metadata:
-[2026-07-31T15:13:37.597Z] [FFmpeg Log]:     major_brand     : isom
-[2026-07-31T15:13:37.598Z] [FFmpeg Log]:     minor_version   : 512
-[2026-07-31T15:13:37.599Z] [FFmpeg Log]:     compatible_brands: isomiso2avc1mp41
-[2026-07-31T15:13:37.600Z] [FFmpeg Log]:     encoder         : Lavf60.16.100
-[2026-07-31T15:13:37.602Z] [FFmpeg Log]:   Duration: 00:00:05.55, start: 0.000000, bitrate: 529 kb/s
-[2026-07-31T15:13:37.602Z] [FFmpeg Log]:   Stream #0:0[0x1](und): Video: h264 (High) (avc1 / 0x31637661), yuv420p(tv, unknown/bt709/iec61966-2-1, progressive), 500x500 [SAR 1:1 DAR 1:1], 440 kb/s, 25 fps, 25 tbr, 12800 tbn (default)
-[2026-07-31T15:13:37.604Z] [FFmpeg Log]:     Metadata:
-[2026-07-31T15:13:37.605Z] [FFmpeg Log]:       handler_name    : VideoHandler
-[2026-07-31T15:13:37.606Z] [FFmpeg Log]:       vendor_id       : [0][0][0][0]
-[2026-07-31T15:13:37.607Z] [FFmpeg Log]:       encoder         : Lavc60.31.102 libx264
-[2026-07-31T15:13:37.609Z] [FFmpeg Log]:   Stream #0:1[0x2](eng): Audio: aac (LC) (mp4a / 0x6134706D), 48000 Hz, stereo, fltp, 82 kb/s (default)
-[2026-07-31T15:13:37.612Z] [FFmpeg Log]:     Metadata:
-[2026-07-31T15:13:37.614Z] [FFmpeg Log]:       handler_name    : Mainconcept MP4 Sound Media Handler
-[2026-07-31T15:13:37.615Z] [FFmpeg Log]:       vendor_id       : [0][0][0][0]
-[2026-07-31T15:13:37.617Z] [FFmpeg Log]: Stream mapping:
-[2026-07-31T15:13:37.618Z] [FFmpeg Log]:   Stream #0:0 -> #0:0 (h264 (native) -> webp (libwebp))
-[2026-07-31T15:13:37.619Z] [FFmpeg Log]: Press [q] to stop, [?] for help
-[2026-07-31T15:13:37.664Z] [FFmpeg Log]: Output #0, webp, to 'C:\Users\juane\Desktop\bot\output_AC576EF30397F4479C2347B65C203EEA.webp':
-[2026-07-31T15:13:37.665Z] [FFmpeg Log]:   Metadata:
-[2026-07-31T15:13:37.667Z] [FFmpeg Log]:     major_brand     : isom
-[2026-07-31T15:13:37.668Z] [FFmpeg Log]:     minor_version   : 512
-[2026-07-31T15:13:37.669Z] [FFmpeg Log]:     compatible_brands: isomiso2avc1mp41
-[2026-07-31T15:13:37.671Z] [FFmpeg Log]:     encoder         : Lavf60.16.100
-[2026-07-31T15:13:37.672Z] [FFmpeg Log]:   Stream #0:0(und): Video: webp, yuv420p(tv, unknown/bt709/iec61966-2-1, progressive), 512x512 [SAR 1:1 DAR 1:1], q=2-31, 200 kb/s, 12 fps, 1k tbn (default)
-[2026-07-31T15:13:37.673Z] [FFmpeg Log]:     Metadata:
-[2026-07-31T15:13:37.674Z] [FFmpeg Log]:       handler_name    : VideoHandler
-[2026-07-31T15:13:37.675Z] [FFmpeg Log]:       vendor_id       : [0][0][0][0]
-[2026-07-31T15:13:37.676Z] [FFmpeg Log]:       encoder         : Lavc60.31.102 libwebp
-[2026-07-31T15:13:37.708Z] [FFmpeg Log]: frame=    0 fps=0.0 q=-0.0 size=       0kB time=00:00:00.00 bitrate=N/A speed=   0x    
-[2026-07-31T15:13:38.169Z] [FFmpeg Log]: frame=   10 fps=0.0 q=-0.0 size=      80kB time=00:00:00.75 bitrate= 875.4kbits/s speed=1.36x    
-[2026-07-31T15:13:38.680Z] [FFmpeg Log]: frame=   26 fps= 24 q=-0.0 size=     247kB time=00:00:02.08 bitrate= 972.7kbits/s speed=1.96x    
-[2026-07-31T15:13:39.193Z] [FFmpeg Log]: frame=   42 fps= 27 q=-0.0 size=     256kB time=00:00:03.41 bitrate= 613.8kbits/s speed=2.17x    
-[2026-07-31T15:13:39.701Z] [FFmpeg Log]: frame=   58 fps= 28 q=-0.0 size=     512kB time=00:00:04.75 bitrate= 883.0kbits/s speed=2.28x    
-[2026-07-31T15:13:39.768Z] [FFmpeg Log]: [out#0/webp @ 0000011adaba89c0] video:607kB audio:0kB subtitle:0kB other streams:0kB global headers:0kB muxing overhead: 0.122829%
-[2026-07-31T15:13:39.771Z] [FFmpeg Log]: frame=   60 fps= 28 q=-0.0 Lsize=     608kB time=00:00:04.91 bitrate=1013.3kbits/s speed=2.28x    
-[2026-07-31T15:13:39.781Z] [FFmpeg Log]: 
-[2026-07-31T15:13:39.784Z] FFmpeg finalizó la conversión correctamente.
-[2026-07-31T15:13:39.787Z] Tamaño final del archivo WebP: 622768 bytes
-[2026-07-31T15:13:39.788Z] Enviando sticker animado a WhatsApp...
-[2026-07-31T15:13:41.349Z] Limpiando archivos temporales...
-[2026-07-31T15:13:41.354Z] === PROCESO COMPLETADO CON ÉXITO ===
+[2026-07-31T18:11:20.985Z] Contenedor detectado: Normal
+[2026-07-31T18:11:20.987Z] Tipo de contenido interno: videoMessage
+[2026-07-31T18:11:20.988Z] Iniciando descarga del multimedia con Baileys...
+[2026-07-31T18:11:21.777Z] Multimedia descargado con éxito. Tamaño: 714668 bytes
+[2026-07-31T18:11:21.782Z] Archivo temporal guardado en: C:\Users\juane\Desktop\bot\input_AC7E68C43AC284E33D7D6D89822B7A69.mp4
+[2026-07-31T18:11:21.783Z] Iniciando proceso con FFmpeg...
+[2026-07-31T18:11:21.800Z] [FFmpeg Comando]: ffmpeg -ss 0 -t 5 -i C:\Users\juane\Desktop\bot\input_AC7E68C43AC284E33D7D6D89822B7A69.mp4 -y -vcodec libwebp -pix_fmt yuva420p -vf scale=512:512:force_original_aspect_ratio=decrease,pad=512:512:(ow-iw)/2:(oh-ih)/2:color=black@0.0,format=yuva420p,fps=12 -loop 0 -an -vsync 0 -preset default -compression_level 6 -q:v 28 -f webp C:\Users\juane\Desktop\bot\output_AC7E68C43AC284E33D7D6D89822B7A69.webp
+[2026-07-31T18:11:21.870Z] [FFmpeg Log]: ffmpeg version 6.1.1-essentials_build-www.gyan.dev Copyright (c) 2000-2023 the FFmpeg developers
+[2026-07-31T18:11:21.871Z] [FFmpeg Log]:   built with gcc 12.2.0 (Rev10, Built by MSYS2 project)
+[2026-07-31T18:11:21.874Z] [FFmpeg Log]:   configuration: --enable-gpl --enable-version3 --enable-static --pkg-config=pkgconf --disable-w32threads --disable-autodetect --enable-fontconfig --enable-iconv --enable-gnutls --enable-libxml2 --enable-gmp --enable-bzlib --enable-lzma --enable-zlib --enable-libsrt --enable-libssh --enable-libzmq --enable-avisynth --enable-sdl2 --enable-libwebp --enable-libx264 --enable-libx265 --enable-libxvid --enable-libaom --enable-libopenjpeg --enable-libvpx --enable-mediafoundation --enable-libass --enable-libfreetype --enable-libfribidi --enable-libharfbuzz --enable-libvidstab --enable-libvmaf --enable-libzimg --enable-amf --enable-cuda-llvm --enable-cuvid --enable-ffnvcodec --enable-nvdec --enable-nvenc --enable-dxva2 --enable-d3d11va --enable-libvpl --enable-libgme --enable-libopenmpt --enable-libopencore-amrwb --enable-libmp3lame --enable-libtheora --enable-libvo-amrwbenc --enable-libgsm --enable-libopencore-amrnb --enable-libopus --enable-libspeex --enable-libvorbis --enable-librubberband
+[2026-07-31T18:11:21.876Z] [FFmpeg Log]:   libavutil      58. 29.100 / 58. 29.100
+[2026-07-31T18:11:21.878Z] [FFmpeg Log]:   libavcodec     60. 31.102 / 60. 31.102
+[2026-07-31T18:11:21.879Z] [FFmpeg Log]:   libavformat    60. 16.100 / 60. 16.100
+[2026-07-31T18:11:21.880Z] [FFmpeg Log]:   libavdevice    60.  3.100 / 60.  3.100
+[2026-07-31T18:11:21.881Z] [FFmpeg Log]:   libavfilter     9. 12.100 /  9. 12.100
+[2026-07-31T18:11:21.883Z] [FFmpeg Log]:   libswscale      7.  5.100 /  7.  5.100
+[2026-07-31T18:11:21.884Z] [FFmpeg Log]:   libswresample   4. 12.100 /  4. 12.100
+[2026-07-31T18:11:21.886Z] [FFmpeg Log]:   libpostproc    57.  3.100 / 57.  3.100
+[2026-07-31T18:11:21.887Z] [FFmpeg Log]: -vsync is deprecated. Use -fps_mode
+[2026-07-31T18:11:21.888Z] [FFmpeg Log]: Passing a number to -vsync is deprecated, use a string argument as described in the manual.
+[2026-07-31T18:11:21.927Z] [FFmpeg Log]: Input #0, mov,mp4,m4a,3gp,3g2,mj2, from 'C:\Users\juane\Desktop\bot\input_AC7E68C43AC284E33D7D6D89822B7A69.mp4':
+[2026-07-31T18:11:21.928Z] [FFmpeg Log]:   Metadata:
+[2026-07-31T18:11:21.931Z] [FFmpeg Log]:     major_brand     : isom
+[2026-07-31T18:11:21.933Z] [FFmpeg Log]:     minor_version   : 512
+[2026-07-31T18:11:21.934Z] [FFmpeg Log]:     compatible_brands: isomiso2avc1mp41
+[2026-07-31T18:11:21.935Z] [FFmpeg Log]:     encoder         : Lavf60.16.100
+[2026-07-31T18:11:21.937Z] [FFmpeg Log]:   Duration: 00:00:04.80, start: 0.000000, bitrate: 1191 kb/s
+[2026-07-31T18:11:21.938Z] [FFmpeg Log]:   Stream #0:0[0x1](und): Video: h264 (High) (avc1 / 0x31637661), yuv420p(tv, bt470bg/unknown/unknown, progressive), 360x640 [SAR 2984:2385 DAR 373:530], 1056 kb/s, 25 fps, 25 tbr, 12800 tbn (default)
+[2026-07-31T18:11:21.939Z] [FFmpeg Log]:     Metadata:
+[2026-07-31T18:11:21.940Z] [FFmpeg Log]:       handler_name    : VideoHandler
+[2026-07-31T18:11:21.941Z] [FFmpeg Log]:       vendor_id       : [0][0][0][0]
+[2026-07-31T18:11:21.942Z] [FFmpeg Log]:       encoder         : Lavc60.31.102 libx264
+[2026-07-31T18:11:21.943Z] [FFmpeg Log]:   Stream #0:1[0x2](eng): Audio: aac (LC) (mp4a / 0x6134706D), 48000 Hz, stereo, fltp, 125 kb/s (default)
+[2026-07-31T18:11:21.945Z] [FFmpeg Log]:     Metadata:
+[2026-07-31T18:11:21.946Z] [FFmpeg Log]:       handler_name    : Mainconcept MP4 Sound Media Handler
+[2026-07-31T18:11:21.947Z] [FFmpeg Log]:       vendor_id       : [0][0][0][0]
+[2026-07-31T18:11:21.956Z] [FFmpeg Log]: Stream mapping:
+[2026-07-31T18:11:21.957Z] [FFmpeg Log]:   Stream #0:0 -> #0:0 (h264 (native) -> webp (libwebp))
+[2026-07-31T18:11:21.959Z] [FFmpeg Log]: Press [q] to stop, [?] for help
+[2026-07-31T18:11:22.025Z] [FFmpeg Log]: Output #0, webp, to 'C:\Users\juane\Desktop\bot\output_AC7E68C43AC284E33D7D6D89822B7A69.webp':
+[2026-07-31T18:11:22.026Z] [FFmpeg Log]:   Metadata:
+[2026-07-31T18:11:22.029Z] [FFmpeg Log]:     major_brand     : isom
+[2026-07-31T18:11:22.031Z] [FFmpeg Log]:     minor_version   : 512
+[2026-07-31T18:11:22.033Z] [FFmpeg Log]:     compatible_brands: isomiso2avc1mp41
+[2026-07-31T18:11:22.035Z] [FFmpeg Log]:     encoder         : Lavf60.16.100
+[2026-07-31T18:11:22.036Z] [FFmpeg Log]:   Stream #0:0(und): Video: webp, yuva420p(tv, bt470bg/unknown/unknown, progressive), 512x512 [SAR 2984:2385 DAR 2984:2385], q=2-31, 200 kb/s, 12 fps, 1k tbn (default)
+[2026-07-31T18:11:22.038Z] [FFmpeg Log]:     Metadata:
+[2026-07-31T18:11:22.040Z] [FFmpeg Log]:       handler_name    : VideoHandler
+[2026-07-31T18:11:22.041Z] [FFmpeg Log]:       vendor_id       : [0][0][0][0]
+[2026-07-31T18:11:22.043Z] [FFmpeg Log]:       encoder         : Lavc60.31.102 libwebp
