@@ -42,6 +42,8 @@ const { handleGloboCommand } = require('./commands/globo');
 const { ejecutarPeaky } = require('./commands/peaky');
 const { ejecutarDbz } = require('./commands/dbz');
 const { ejecutarHomero } = require('./commands/homero');
+const { ejecutarQueseso } = require('./commands/queseso');
+const { ejecutarMonofoto } = require('./commands/monofoto');
 const { esAdmin, cargarBaneos, banUser, unbanUser, getListaBaneados } = require('./commands/bans');
 const { ejecutarEdit } = require('./commands/edit');
 const { conectarDB } = require('./database');
@@ -66,6 +68,8 @@ const handleCrash = (err, type) => {
 };
 process.on('uncaughtException', (err) => handleCrash(err, 'Uncaught Exception'));
 process.on('unhandledRejection', (reason) => handleCrash(reason, 'Unhandled Rejection'));
+
+
 
 async function startBot() {
     // Conectar a MongoDB Atlas al iniciar
@@ -158,6 +162,12 @@ async function startBot() {
                 case "sticker":
                     await ejecutarSticker(sock, msg, from);
                     break;
+                case "queseso": // <-- COMANDO AÑADIDO AQUÍ
+                    await ejecutarQueseso(sock, msg, from);
+                    break;
+                case "foto":
+                    await ejecutarMonofoto(sock, msg, from);
+                    break;
                 case "nota":
                     await ejecutarNota(sock, msg, msgText, from);
                     break;
@@ -227,5 +237,4 @@ async function startBot() {
         console.error("❌ Error en startBot:", e);
     }
 }
-
 startBot();
