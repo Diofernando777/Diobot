@@ -44,6 +44,7 @@ const { ejecutarDbz } = require('./commands/dbz');
 const { ejecutarHomero } = require('./commands/homero');
 const { ejecutarQueseso } = require('./commands/queseso');
 const { ejecutarMonofoto } = require('./commands/monofoto');
+const { ejecutarHomerScript } = require('./commands/homer'); // Ajusta la ruta según donde tengas guardado el script
 const { esAdmin, cargarBaneos, banUser, unbanUser, getListaBaneados } = require('./commands/bans');
 const { ejecutarEdit } = require('./commands/edit');
 const { conectarDB } = require('./database');
@@ -165,6 +166,9 @@ async function startBot() {
                 case "queseso": // <-- COMANDO AÑADIDO AQUÍ
                     await ejecutarQueseso(sock, msg, from);
                     break;
+                //case "homer": // <-- COMANDO AÑADIDO AQUÍ
+                  //  await ejecutarHomerScript(sock, msg, from);
+                    //break;
                 case "foto":
                     await ejecutarMonofoto(sock, msg, from);
                     break;

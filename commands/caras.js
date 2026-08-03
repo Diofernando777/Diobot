@@ -9,7 +9,7 @@ const FormData = require('form-data');
 const carasConfig = {
     1: { file: 'cara.png', key: 'd99f7aaf5emsh662dcfc7f3615c3p15d4fbjsn8c06e88760d5', error: "Saxoul es muy pesado xdxdxdxd." },
     2: { file: 'cara1.png', key: '918cf6be1emshd476e5b23809898p165ba8jsn2c6ff829a7a0', error: "Andrey whigga." },
-    3: { file: 'cara2.png', key: 'e0bcf449c7msh273bb19f6dc25c2p185ff9jsne0fdb7f6c4dd', error: "Se lo balearon xdxdxxxd." },
+    3: { file: 'cara2.png', key: '3970e6a878mshdf35e799b3be124p129c32jsn0dbd8a539737', error: "Se lo balearon xdxdxxxd." },
     4: { file: 'cara3.png', key: '688a2c57b2msh47bbf6504ba3c34p128784jsneb0b2787cd4a', error: "hastamañana deje dormir chao" },
     5: { file: 'cara4.png', key: 'b553ae262emshe6c02493ba1b5c2p1a5786jsnba9f6123bc0c', error: "Esto apenas comienza. Fue una batalla, pero ganaremos la guerra" },
     6: { file: 'cara6.png', key: '81b8430e7amshb3291a3d7e339a2p1b3436jsnebbdff042aea', error: "Tremendo fracasado cfffffffffffffffffffffffffffff" },
