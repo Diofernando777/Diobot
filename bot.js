@@ -105,8 +105,12 @@ async function startBot() {
             const msg = messages[0];
             if (!msg.message || msg.key.fromMe) return;
 
-            const senderId = msg.key.participant || msg.key.remoteJid;
+            // Corrección aplicada: Si es chat privado, toma 'from' como senderId
             const from = msg.key.remoteJid;
+            const senderId = msg.key.participant || from; 
+            
+            if (from.endsWith('@broadcast')) return;
+
             const msgText = msg.message.conversation || msg.message.extendedTextMessage?.text || msg.message.imageMessage?.caption || msg.message.videoMessage?.caption || "";
             const comando = msgText.trim().split(/ +/)[0].toLowerCase();
 
@@ -128,7 +132,7 @@ async function startBot() {
             processedMessages.add(msg.key.id);
             setTimeout(() => processedMessages.delete(msg.key.id), 5000);
             
-            console.log("DEBUG: Comando detectado ->", comando);
+            console.log("DEBUG: Comando detectado ->", comando, "| Chat:", from);
 
             // 2. Ejecución de comandos
             const getTarget = () => {
@@ -163,12 +167,9 @@ async function startBot() {
                 case "sticker":
                     await ejecutarSticker(sock, msg, from);
                     break;
-                case "queseso": // <-- COMANDO AÑADIDO AQUÍ
+                case "queseso":
                     await ejecutarQueseso(sock, msg, from);
                     break;
-                //case "homer": // <-- COMANDO AÑADIDO AQUÍ
-                  //  await ejecutarHomerScript(sock, msg, from);
-                    //break;
                 case "foto":
                     await ejecutarMonofoto(sock, msg, from);
                     break;
