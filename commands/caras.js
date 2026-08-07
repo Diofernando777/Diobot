@@ -7,7 +7,7 @@ const FormData = require('form-data');
 
 // Configuraciones de cada comando (apiKey, nombre del archivo, mensaje de error)
 const carasConfig = {
-    1: { file: 'cara.png', key: 'd99f7aaf5emsh662dcfc7f3615c3p15d4fbjsn8c06e88760d5', error: "Saxoul es muy pesado xdxdxdxd." },
+    1: { file: 'cara.png', key: 'b87c8d9a1fmshc7d28c28c5022d9p142dffjsn40df818ab7ca', error: "Saxoul es muy pesado xdxdxdxd." },
     2: { file: 'cara1.png', key: '918cf6be1emshd476e5b23809898p165ba8jsn2c6ff829a7a0', error: "Andrey whigga." },
     3: { file: 'cara2.png', key: '3970e6a878mshdf35e799b3be124p129c32jsn0dbd8a539737', error: "Se lo balearon xdxdxxxd." },
     4: { file: 'cara3.png', key: '688a2c57b2msh47bbf6504ba3c34p128784jsneb0b2787cd4a', error: "hastamañana deje dormir chao" },
