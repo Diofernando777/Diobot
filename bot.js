@@ -29,6 +29,7 @@ const BANS_FILE = './bans.json';
 let listaBaneados = [];
 
 // ==================== IMPORTACIÓN DE MÓDULOS DE COMANDOS ====================
+const { ejecutarTapiasOpina } = require('./commands/ver');
 const { ejecutarShip } = require('./commands/ship');
 const { handleCheemsCommand } = require('./commands/cheems');
 const { ejecutarBana } = require('./commands/bana');
@@ -133,6 +134,13 @@ async function startBot() {
             setTimeout(() => processedMessages.delete(msg.key.id), 5000);
             
             console.log("DEBUG: Comando detectado ->", comando, "| Chat:", from);
+
+            // Verificación previa para comandos compuestos como "tapias opina"
+            const textoMinuscula = msgText.toLowerCase().trim();
+            if (textoMinuscula.startsWith("tapias opina")) {
+                await ejecutarTapiasOpina(sock, msg, from);
+                return;
+            }
 
             // 2. Ejecución de comandos
             const getTarget = () => {
