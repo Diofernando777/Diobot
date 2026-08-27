@@ -10,7 +10,7 @@ const ffmpeg = require('fluent-ffmpeg');
 const ffmpegPath = require('ffmpeg-static');
 const puppeteer = require('puppeteer');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
-
+const { ejecutarAiNormal } = require('./commands/aiNormal');
 
 const { 
     default: makeWASocket, 
@@ -241,9 +241,14 @@ async function startBot() {
                 case "downficalo":
                     await handleCaraCommand9(sock, msg, from);
                     break;
+                case "gpt":
+                case "ia":
+                    await ejecutarAiNormal(sock, msg, msgText, from);
+                    break;
                 default:
                     await ejecutarIA(sock, msg, msgText, from);
                     break;
+
             }
         });
     } catch (e) {
