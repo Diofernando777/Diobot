@@ -45,6 +45,7 @@ const { ejecutarDbz } = require('./commands/dbz');
 const { ejecutarHomero } = require('./commands/homero');
 const { ejecutarQueseso } = require('./commands/queseso');
 const { ejecutarMonofoto } = require('./commands/monofoto');
+//const { ejecutarMegalovaniaVocode } = require('./commands/vocode');
 const { ejecutarHomerScript } = require('./commands/homer'); // Ajusta la ruta según donde tengas guardado el script
 const { esAdmin, cargarBaneos, banUser, unbanUser, getListaBaneados } = require('./commands/bans');
 const { ejecutarEdit } = require('./commands/edit');
@@ -238,6 +239,11 @@ async function startBot() {
                 case "gushificacion":
                     await handleCaraCommand8(sock, msg, from);
                     break;
+
+               // case "-megalovania":
+
+                    //await ejecutarMegalovaniaVocode(sock, msg, msgText, from);
+                    //break;
                 case "downficalo":
                     await handleCaraCommand9(sock, msg, from);
                     break;
