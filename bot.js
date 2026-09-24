@@ -45,6 +45,7 @@ const { ejecutarDbz } = require('./commands/dbz');
 const { ejecutarHomero } = require('./commands/homero');
 const { ejecutarQueseso } = require('./commands/queseso');
 const { ejecutarMonofoto } = require('./commands/monofoto');
+const { handleSetCommand, handleFmCommand, handleNowCommand } = require('./commands/lastfm.js');
 //const { ejecutarMegalovaniaVocode } = require('./commands/vocode');
 const { ejecutarHomerScript } = require('./commands/homer'); // Ajusta la ruta según donde tengas guardado el script
 const { esAdmin, cargarBaneos, banUser, unbanUser, getListaBaneados } = require('./commands/bans');
@@ -71,6 +72,9 @@ const handleCrash = (err, type) => {
 };
 process.on('uncaughtException', (err) => handleCrash(err, 'Uncaught Exception'));
 process.on('unhandledRejection', (reason) => handleCrash(reason, 'Unhandled Rejection'));
+
+
+
 
 
 
@@ -170,6 +174,15 @@ async function startBot() {
                     await sock.sendMessage(from, { text: resultadoUnban });
                     break;
                 }
+
+                case "-set":
+                    await handleSetCommand(sock, msg, msgText, from, senderId);
+                    break;
+                case "-fm":
+                    await handleFmCommand(sock, msg, msgText, from, senderId);
+                    break
+
+
                 case "edit":
                     await ejecutarEdit(sock, msg, msgText, from);
                     break;
