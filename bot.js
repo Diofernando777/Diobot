@@ -45,7 +45,7 @@ const { ejecutarDbz } = require('./commands/dbz');
 const { ejecutarHomero } = require('./commands/homero');
 const { ejecutarQueseso } = require('./commands/queseso');
 const { ejecutarMonofoto } = require('./commands/monofoto');
-const { handleSetCommand, handleFmCommand, handleNowCommand } = require('./commands/lastfm.js');
+const { handleSetCommand, handleFmCommand, handleNowCommand, handleCCommand, handleCompatCommand } = require('./commands/lastfm.js');
 //const { ejecutarMegalovaniaVocode } = require('./commands/vocode');
 const { ejecutarHomerScript } = require('./commands/homer'); // Ajusta la ruta según donde tengas guardado el script
 const { esAdmin, cargarBaneos, banUser, unbanUser, getListaBaneados } = require('./commands/bans');
@@ -182,6 +182,13 @@ async function startBot() {
                     await handleFmCommand(sock, msg, msgText, from, senderId);
                     break
 
+                case "-c":
+                                    await handleCCommand(sock, msg, msgText, from, senderId);
+                                    break;
+
+                case "-compat":
+                                    await handleCompatCommand(sock, msg, from, senderId);
+                                    break;
 
                 case "edit":
                     await ejecutarEdit(sock, msg, msgText, from);
