@@ -4,5 +4,10 @@
     "userId": "145771525611759@lid",
     "admin": false,
     "baneado": true
+  },
+  {
+    "_id": "6ac45fff7a377d0d8b6762cc",
+    "userId": "275621238284326@lid",
+    "baneado": true
   }
 ]
