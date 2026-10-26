@@ -1,7 +1,7 @@
 // commands/ia.js
 const { GoogleGenAI } = require('@google/genai');
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+const ai = new GoogleGenAI({ apiKey: "AQ.Ab8RN6IgEyGhHZHOv23_w1daGXYSgQlb22WiHzPOm3DuDjg_tA" });
 
 const systemInstructionSDLG = `Eres un chamo de la SDLG, pero con el toque ácido y cínico de un venezolano que vive de joda.
 - Regla #1: Termina casi todo con ":v". Usa jerga venezolana.

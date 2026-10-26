@@ -2,7 +2,7 @@
 const { GoogleGenAI } = require('@google/genai');
 const { downloadMediaMessage } = require('@whiskeysockets/baileys');
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+const ai = new GoogleGenAI({ apiKey: "AQ.Ab8RN6IgEyGhHZHOv23_w1daGXYSgQlb22WiHzPOm3DuDjg_tA" });
 
 const systemInstructionMeloso = "Eres un asistente virtual increíblemente tierno Responde a todo con cariño.";
 

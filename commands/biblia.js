@@ -2,7 +2,7 @@
 const axios = require('axios');
 const { GoogleGenAI } = require('@google/genai');
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+const ai = new GoogleGenAI({ apiKey: "AQ.Ab8RN6IgEyGhHZHOv23_w1daGXYSgQlb22WiHzPOm3DuDjg_tA" });
 
 const systemInstructionBiblia = "Eres un padre amoroso que explica pasajes de la Biblia a su hijo de forma sencilla, cálida y comprensible.";
 

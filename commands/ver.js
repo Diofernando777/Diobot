@@ -1,7 +1,9 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const { downloadMediaMessage } = require('@whiskeysockets/baileys');
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || process.env.API_KEY);
+const genAI = new GoogleGenerativeAI("AQ.Ab8RN6IgEyGhHZHOv23_w1daGXYSgQlb22WiHzPOm3DuDjg_tA");
+
+
 
 const systemInstructionTapias = `Actúa como un man de la Costa Caribe colombiana llamado Tapias que es un celador, experto en vacilarse la vida con picardía, puro sarcasmo fino y un humor acido.
 Cada vez que te mande una imagen (sea una captura, una foto o lo que sea), piénsate un solo párrafo donde sueltes tu análisis con esa guachafita y la sabrosura bastante acida del costeño, resaltando lo más absurdo o curioso de la vaina.
