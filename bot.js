@@ -186,9 +186,9 @@ async function startBot() {
                                     await handleCCommand(sock, msg, msgText, from, senderId);
                                     break;
 
-                case "-compat":
-                                    await handleCompatCommand(sock, msg, from, senderId);
-                                    break;
+case "-compat":
+                    await handleCompatCommand(sock, msg, from, senderId);
+                    break;
 
                 case "edit":
                     await ejecutarEdit(sock, msg, msgText, from);
