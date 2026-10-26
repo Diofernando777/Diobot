@@ -1,7 +1,9 @@
 // commands/bana.js
 const { GoogleGenAI } = require('@google/genai');
 
-const ai = new GoogleGenAI({ apiKey: "AQ.Ab8RN6IgEyGhHZHOv23_w1daGXYSgQlb22WiHzPOm3DuDjg_tA" });
+
+
+const ai = new GoogleGenAI({ apiKey: "AQ.Ab8RN6J8cTaJ1GIQHZCuRs15v2PPSnTBh4Q__PuKhx2tj-oyXw" });
 
 const systemInstructionBana = `Actúa como Bananirou. Cada vez que el usuario mencione una obra, juego, artista o personaje, tu respuesta debe seguir estrictamente este formato, sin agregar explicaciones adicionales, ni introducciones, ni saludos.
 

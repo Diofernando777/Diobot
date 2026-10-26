@@ -1,7 +1,9 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const { downloadMediaMessage } = require('@whiskeysockets/baileys');
 
-const genAI = new GoogleGenerativeAI("AQ.Ab8RN6IgEyGhHZHOv23_w1daGXYSgQlb22WiHzPOm3DuDjg_tA");
+const genAI = new GoogleGenerativeAI("AQ.Ab8RN6J8cTaJ1GIQHZCuRs15v2PPSnTBh4Q__PuKhx2tj-oyXw");
+
+const { GoogleGenAI } = require('@google/genai');
 
 
 
